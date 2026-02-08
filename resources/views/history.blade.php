@@ -9,9 +9,78 @@
         <h2 class="card-title">Pilih Perangkat</h2>
     </div>
     <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
-        <select id="device-select" class="btn btn-secondary" style="min-width: 220px;">
-            <option value="">-- Pilih Perangkat --</option>
-        </select>
+        <div
+            x-data="{ 
+                open: false, 
+                selected: '',
+                selectedLabel: 'Pilih Perangkat',
+                devices: [],
+                async init() {
+                    const res = await fetch('/api/devices');
+                    this.devices = await res.json();
+                    
+                    // Check URL params
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const deviceId = urlParams.get('device');
+                    if (deviceId) {
+                        this.selected = deviceId;
+                        this.selectedLabel = deviceId;
+                        this.$nextTick(() => loadHistory());
+                    }
+                },
+                selectOption(value) {
+                    this.selected = value;
+                    this.selectedLabel = value;
+                    this.open = false;
+                    document.getElementById('device-select').value = value;
+                }
+            }"
+            class="custom-select-wrapper"
+            @click.away="open = false">
+            <button
+                type="button"
+                @click="open = !open"
+                class="custom-select-btn"
+                :class="{ 'active': open }">
+                <span x-text="selectedLabel"></span>
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="select-arrow"
+                    :class="{ 'rotate': open }">
+                    <path d="m6 9 6 6 6-6" />
+                </svg>
+            </button>
+
+            <div
+                x-show="open"
+                x-transition:enter="transition ease-out duration-100"
+                x-transition:enter-start="opacity-0 transform scale-95"
+                x-transition:enter-end="opacity-100 transform scale-100"
+                x-transition:leave="transition ease-in duration-75"
+                x-transition:leave-start="opacity-100 transform scale-100"
+                x-transition:leave-end="opacity-0 transform scale-95"
+                class="custom-select-dropdown">
+                <div class="custom-select-options">
+                    <template x-for="device in devices" :key="device.device_id">
+                        <button
+                            type="button"
+                            class="custom-select-option"
+                            :class="{ 'selected': selected === device.device_id }"
+                            @click="selectOption(device.device_id)"
+                            x-text="device.device_id"></button>
+                    </template>
+                </div>
+            </div>
+
+            <input type="hidden" id="device-select" :value="selected">
+        </div>
+
         <button class="btn btn-primary" onclick="loadHistory()">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M3 3v18h18" />
@@ -68,26 +137,7 @@
     var polyline = null;
     var historyMarkers = [];
 
-    // Load devices for dropdown
-    fetch('/api/devices')
-        .then(res => res.json())
-        .then(devices => {
-            const select = document.getElementById('device-select');
-            devices.forEach(device => {
-                const option = document.createElement('option');
-                option.value = device.device_id;
-                option.textContent = device.device_id;
-                select.appendChild(option);
-            });
-
-            // Check if device_id is in URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const deviceId = urlParams.get('device');
-            if (deviceId) {
-                select.value = deviceId;
-                loadHistory();
-            }
-        });
+    // Device selection now handled by Alpine.js component above
 
     function loadHistory() {
         const deviceId = document.getElementById('device-select').value;
