@@ -7,11 +7,7 @@
 <div class="stats-grid">
     <div class="stat-card">
         <div class="stat-icon blue">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
-                <path d="M2 12h20" />
-            </svg>
+            <i class="fas fa-satellite-dish"></i>
         </div>
         <div class="stat-info">
             <h3 id="total-devices">0</h3>
@@ -20,10 +16,7 @@
     </div>
     <div class="stat-card">
         <div class="stat-icon green">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                <path d="m9 11 3 3L22 4" />
-            </svg>
+            <i class="fas fa-check-circle"></i>
         </div>
         <div class="stat-info">
             <h3 id="active-devices">0</h3>
@@ -32,36 +25,53 @@
     </div>
     <div class="stat-card">
         <div class="stat-icon orange">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />
-            </svg>
+            <i class="fas fa-car"></i>
         </div>
         <div class="stat-info">
-            <h3 id="avg-speed">0 km/h</h3>
-            <p>Kecepatan Rata-rata</p>
+            <h3>{{ $totalVehicles }}</h3>
+            <p>Total Kendaraan</p>
         </div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon purple">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-                <circle cx="12" cy="10" r="3" />
-            </svg>
+        <div class="stat-icon {{ $serviceAlertCount > 0 ? 'red' : 'purple' }}">
+            <i class="fas fa-bell"></i>
         </div>
         <div class="stat-info">
-            <h3 id="total-locations">0</h3>
-            <p>Total Data Lokasi</p>
+            <h3>{{ $serviceAlertCount }}</h3>
+            <p>Notifikasi Service</p>
         </div>
     </div>
 </div>
 
-<div class="map-container">
+<div class="map-container" style="position: relative;">
     <div id="map"></div>
+
+    {{-- Legend Panel --}}
+    <div class="map-legend" id="map-legend">
+        <div class="map-legend-header">
+            <i class="fas fa-list-ul" style="font-size:13px;"></i>
+            <span>Perangkat & Kendaraan</span>
+            <button class="map-legend-toggle" onclick="toggleLegend()" title="Toggle Legend">
+                <i class="fas fa-chevron-down" id="legend-chevron"></i>
+            </button>
+        </div>
+        <div class="map-legend-body" id="legend-body">
+            <div class="map-legend-loading">
+                <i class="fas fa-spinner fa-spin"></i> Memuat...
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
 
 @push('scripts')
+<script type="application/json" id="device-vehicle-data">
+    <?php echo json_encode($deviceVehicleMap); ?>
+</script>
 <script>
+    // Device -> Vehicle mapping from server
+    var deviceVehicleMap = JSON.parse(document.getElementById('device-vehicle-data').textContent);
+
     // Initialize Map
     var map = L.map('map').setView([-6.20695, 107.29205], 14);
 
@@ -71,6 +81,7 @@
     }).addTo(map);
 
     var markers = {};
+    var polylines = {};
     var deviceColors = {};
     var colorPalette = ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
     var colorIndex = 0;
@@ -83,7 +94,28 @@
         return deviceColors[deviceId];
     }
 
-    function createCustomIcon(color) {
+    function createCustomIcon(color, vehicleType) {
+        var iconClass = vehicleType === 'motor' ? 'fa-motorcycle' : 'fa-car';
+        return L.divIcon({
+            className: 'custom-marker',
+            html: `<div style="
+                background: ${color};
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                border: 3px solid white;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 14px;
+            "><i class="fas ${iconClass}"></i></div>`,
+            iconSize: [36, 36],
+            iconAnchor: [18, 18]
+        });
+    }
+
+    function createDefaultIcon(color) {
         return L.divIcon({
             className: 'custom-marker',
             html: `<div style="
@@ -92,8 +124,12 @@
                 height: 28px;
                 border-radius: 50%;
                 border: 3px solid white;
-                box-shadow: 0 2px 12px rgba(0,0,0,0.2);
-            "></div>`,
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 11px;
+            "><i class="fas fa-microchip"></i></div>`,
             iconSize: [28, 28],
             iconAnchor: [14, 14]
         });
@@ -106,54 +142,188 @@
                 document.getElementById('total-devices').textContent = data.length;
                 document.getElementById('active-devices').textContent = data.length;
 
-                let totalSpeed = 0;
+                var allBounds = [];
+
                 data.forEach(location => {
                     const lat = parseFloat(location.latitude);
                     const lng = parseFloat(location.longitude);
                     const deviceId = location.device_id;
                     const color = getDeviceColor(deviceId);
                     const speed = location.speed ?? 0;
-                    totalSpeed += speed;
+                    const vehicle = deviceVehicleMap[deviceId] || null;
+
+                    allBounds.push([lat, lng]);
+
+                    // Build popup with vehicle info
+                    var vehicleName = vehicle ? vehicle.name : deviceId;
+                    var vehicleInfo = '';
+                    if (vehicle) {
+                        vehicleInfo = `
+                            <div style="background: var(--accent-light, #eff6ff); border-radius: 6px; padding: 6px 8px; margin-bottom: 8px;">
+                                <div style="font-weight: 600; font-size: 11px; color: var(--accent, #3b82f6); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">
+                                    <i class="fas ${vehicle.type === 'motor' ? 'fa-motorcycle' : 'fa-car'}" style="margin-right:4px;"></i>
+                                    ${vehicle.type === 'motor' ? 'Motor' : 'Mobil'}
+                                </div>
+                                <div style="font-size: 12px; color: #64748b;">
+                                    ${vehicle.plate ? vehicle.plate + ' &bull; ' : ''}${Number(vehicle.odometer).toLocaleString('id-ID')} KM
+                                </div>
+                            </div>
+                        `;
+                    }
 
                     const popupContent = `
-                        <div style="font-family: Outfit, sans-serif; min-width: 180px;">
-                            <strong style="font-size: 15px; display: block; margin-bottom: 8px;">${deviceId}</strong>
-                            <div style="font-size: 13px; color: #64748b;">
-                                <div style="margin-bottom: 4px;"><strong>Lat:</strong> ${lat.toFixed(6)}</div>
-                                <div style="margin-bottom: 4px;"><strong>Lng:</strong> ${lng.toFixed(6)}</div>
-                                <div style="margin-bottom: 4px;"><strong>Speed:</strong> ${speed.toFixed(1)} km/h</div>
-                                <div><strong>Update:</strong> ${new Date(location.created_at).toLocaleTimeString('id-ID')}</div>
+                        <div style="font-family: Outfit, sans-serif; min-width: 200px;">
+                            <strong style="font-size: 15px; display: block; margin-bottom: 6px;">${vehicleName}</strong>
+                            ${vehicleInfo}
+                            <div style="font-size: 12px; color: #64748b;">
+                                <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+                                    <span><i class="fas fa-microchip" style="width:14px;"></i> Device</span>
+                                    <span style="font-weight:500;">${deviceId}</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+                                    <span><i class="fas fa-map-pin" style="width:14px;"></i> Lat</span>
+                                    <span style="font-weight:500;">${lat.toFixed(6)}</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+                                    <span><i class="fas fa-map-pin" style="width:14px;"></i> Lng</span>
+                                    <span style="font-weight:500;">${lng.toFixed(6)}</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+                                    <span><i class="fas fa-tachometer-alt" style="width:14px;"></i> Kecepatan</span>
+                                    <span style="font-weight:500;">${speed.toFixed(1)} km/h</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;">
+                                    <span><i class="fas fa-clock" style="width:14px;"></i> Update</span>
+                                    <span style="font-weight:500;">${new Date(location.created_at).toLocaleTimeString('id-ID')}</span>
+                                </div>
                             </div>
                         </div>
                     `;
 
+                    var icon = vehicle ?
+                        createCustomIcon(color, vehicle.type) :
+                        createDefaultIcon(color);
+
                     if (markers[deviceId]) {
                         markers[deviceId].setLatLng([lat, lng]);
+                        markers[deviceId].setIcon(icon);
                         markers[deviceId].getPopup().setContent(popupContent);
                     } else {
                         markers[deviceId] = L.marker([lat, lng], {
-                                icon: createCustomIcon(color)
+                                icon: icon
                             })
                             .addTo(map)
                             .bindPopup(popupContent);
                     }
                 });
 
-                const avgSpeed = data.length > 0 ? (totalSpeed / data.length).toFixed(1) : 0;
-                document.getElementById('avg-speed').textContent = avgSpeed + ' km/h';
+                // Fit bounds on first load
+                if (allBounds.length > 0 && !window._mapFitted) {
+                    map.fitBounds(allBounds, {
+                        padding: [40, 40],
+                        maxZoom: 14
+                    });
+                    window._mapFitted = true;
+                }
+
+                // Update legend
+                updateLegend(data);
             })
             .catch(err => console.error('Error:', err));
     }
 
-    // Fetch total locations count
-    fetch('/api/stats')
-        .then(res => res.json())
-        .then(stats => {
-            document.getElementById('total-locations').textContent = stats.total_locations || 0;
-        })
-        .catch(() => {});
+    // Draw route trails for each device
+    function loadTrails() {
+        fetch('/api/device-trails')
+            .then(res => res.json())
+            .then(trails => {
+                Object.keys(trails).forEach(deviceId => {
+                    const color = getDeviceColor(deviceId);
+                    const points = trails[deviceId].map(p => [p.lat, p.lng]);
 
-    setInterval(updateMap, 2000);
+                    if (points.length < 2) return;
+
+                    if (polylines[deviceId]) {
+                        polylines[deviceId].setLatLngs(points);
+                    } else {
+                        polylines[deviceId] = L.polyline(points, {
+                            color: color,
+                            weight: 3,
+                            opacity: 0.6,
+                            dashArray: '8, 6',
+                        }).addTo(map);
+                    }
+                });
+            })
+            .catch(err => console.error('Trail error:', err));
+    }
+
+    // Update legend panel
+    function updateLegend(devices) {
+        var body = document.getElementById('legend-body');
+        if (!devices || devices.length === 0) {
+            body.innerHTML = '<div class="map-legend-empty"><i class="fas fa-signal"></i> Tidak ada perangkat aktif</div>';
+            return;
+        }
+
+        var html = '';
+        devices.forEach(location => {
+            var deviceId = location.device_id;
+            var color = getDeviceColor(deviceId);
+            var vehicle = deviceVehicleMap[deviceId] || null;
+            var name = vehicle ? vehicle.name : 'Tidak terhubung';
+            var plate = vehicle ? (vehicle.plate || '-') : '-';
+            var typeIcon = vehicle ?
+                (vehicle.type === 'motor' ? 'fa-motorcycle' : 'fa-car') :
+                'fa-microchip';
+            var speed = location.speed ? parseFloat(location.speed).toFixed(1) : '0.0';
+
+            html += `
+                <div class="map-legend-item" onclick="focusDevice('${deviceId}')">
+                    <div class="legend-color-dot" style="background:${color};"></div>
+                    <div class="legend-item-info">
+                        <div class="legend-item-name">
+                            <i class="fas ${typeIcon}" style="font-size:11px;color:${color};margin-right:4px;"></i>
+                            ${name}
+                        </div>
+                        <div class="legend-item-meta">
+                            ${deviceId}${plate !== '-' ? ' &bull; ' + plate : ''}
+                        </div>
+                        <div class="legend-item-speed">
+                            <i class="fas fa-tachometer-alt"></i> ${speed} km/h
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        body.innerHTML = html;
+    }
+
+    function focusDevice(deviceId) {
+        if (markers[deviceId]) {
+            var latlng = markers[deviceId].getLatLng();
+            map.setView(latlng, 16, {
+                animate: true
+            });
+            markers[deviceId].openPopup();
+        }
+    }
+
+    function toggleLegend() {
+        var body = document.getElementById('legend-body');
+        var chevron = document.getElementById('legend-chevron');
+        body.classList.toggle('collapsed');
+        chevron.classList.toggle('fa-chevron-down');
+        chevron.classList.toggle('fa-chevron-up');
+    }
+
+    // Initial load
     updateMap();
+    loadTrails();
+
+    // Refresh every 3 seconds
+    setInterval(updateMap, 3000);
+    setInterval(loadTrails, 10000);
 </script>
 @endpush

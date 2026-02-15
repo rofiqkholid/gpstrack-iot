@@ -8,12 +8,7 @@
     <div class="card-header">
         <h2 class="card-title">Perangkat Terdaftar</h2>
         <button class="btn btn-primary" onclick="location.reload()">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-                <path d="M3 3v5h5" />
-                <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
-                <path d="M16 16h5v5" />
-            </svg>
+            <i class="fas fa-sync-alt"></i>
             Refresh
         </button>
     </div>
@@ -46,10 +41,7 @@
                 container.innerHTML = devices.map(device => `
                     <a href="/history?device=${device.device_id}" class="device-item">
                         <div class="device-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
-                                <path d="M12 18h.01"/>
-                            </svg>
+                            <i class="fas fa-microchip"></i>
                         </div>
                         <div class="device-info">
                             <div class="device-name">${device.device_id}</div>

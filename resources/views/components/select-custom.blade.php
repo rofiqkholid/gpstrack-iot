@@ -29,18 +29,7 @@
         class="custom-select-btn"
         :class="{ 'active': open }">
         <span x-text="selectedLabel || '{{ $placeholder }}'"></span>
-        <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="select-arrow"
-            :class="{ 'rotate': open }">
-            <path d="m6 9 6 6 6-6" />
-        </svg>
+        <i class="fas fa-chevron-down select-arrow" :class="{ 'rotate': open }"></i>
     </button>
 
     {{-- Dropdown Options --}}

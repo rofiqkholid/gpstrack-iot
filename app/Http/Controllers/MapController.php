@@ -11,7 +11,35 @@ class MapController extends Controller
 {
     public function index()
     {
-        return view('map');
+        $totalVehicles = \App\Models\Vehicle::count();
+
+        // Count service notifications using Vehicle model methods
+        $serviceAlertCount = 0;
+        $vehicles = \App\Models\Vehicle::all();
+        foreach ($vehicles as $v) {
+            $serviceAlertCount += $v->getUrgentCount();
+            // Also count warnings
+            foreach ($v->getServiceStatus() as $s) {
+                if ($s['status'] === 'warning') {
+                    $serviceAlertCount++;
+                }
+            }
+        }
+
+        // Build device -> vehicle mapping for legend
+        $deviceVehicleMap = [];
+        foreach ($vehicles as $v) {
+            if ($v->device_id) {
+                $deviceVehicleMap[$v->device_id] = [
+                    'name' => $v->name,
+                    'type' => $v->type,
+                    'plate' => $v->plate_number,
+                    'odometer' => $v->current_odometer,
+                ];
+            }
+        }
+
+        return view('map', compact('totalVehicles', 'serviceAlertCount', 'deviceVehicleMap'));
     }
 
     public function devicesPage()
@@ -78,5 +106,30 @@ class MapController extends Controller
             'total_locations' => $totalLocations,
             'total_devices' => $totalDevices,
         ]);
+    }
+
+    /**
+     * Get recent trail/route data for all devices (last 200 points each)
+     */
+    public function deviceTrails()
+    {
+        $deviceIds = Location::distinct()->pluck('device_id');
+        $trails = [];
+
+        foreach ($deviceIds as $deviceId) {
+            $points = Location::where('device_id', $deviceId)
+                ->orderBy('created_at', 'desc')
+                ->limit(200)
+                ->get(['latitude', 'longitude', 'created_at'])
+                ->reverse()
+                ->values();
+
+            $trails[$deviceId] = $points->map(fn($p) => [
+                'lat' => (float) $p->latitude,
+                'lng' => (float) $p->longitude,
+            ]);
+        }
+
+        return response()->json($trails);
     }
 }

@@ -43,18 +43,7 @@
                 class="custom-select-btn"
                 :class="{ 'active': open }">
                 <span x-text="selectedLabel"></span>
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    class="select-arrow"
-                    :class="{ 'rotate': open }">
-                    <path d="m6 9 6 6 6-6" />
-                </svg>
+                <i class="fas fa-chevron-down select-arrow" :class="{ 'rotate': open }"></i>
             </button>
 
             <div
@@ -82,10 +71,7 @@
         </div>
 
         <button class="btn btn-primary" onclick="loadHistory()">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M3 3v18h18" />
-                <path d="m19 9-5 5-4-4-3 3" />
-            </svg>
+            <i class="fas fa-chart-line"></i>
             Tampilkan Riwayat
         </button>
     </div>
@@ -191,7 +177,7 @@
                         L.marker(latlngs[0], {
                             icon: L.divIcon({
                                 className: 'custom-marker',
-                                html: '<div style="background:#22c55e; width:18px; height:18px; border-radius:50%; border:3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.2);"></div>',
+                                html: '<div style="background:#22c55e; width:18px; height:18px; border-radius:50%; border:3px solid white;"></div>',
                                 iconSize: [18, 18],
                                 iconAnchor: [9, 9]
                             })
@@ -203,7 +189,7 @@
                         L.marker(latlngs[latlngs.length - 1], {
                             icon: L.divIcon({
                                 className: 'custom-marker',
-                                html: '<div style="background:#ef4444; width:18px; height:18px; border-radius:50%; border:3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.2);"></div>',
+                                html: '<div style="background:#ef4444; width:18px; height:18px; border-radius:50%; border:3px solid white;"></div>',
                                 iconSize: [18, 18],
                                 iconAnchor: [9, 9]
                             })
