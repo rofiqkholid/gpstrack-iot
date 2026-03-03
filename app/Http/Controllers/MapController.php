@@ -69,15 +69,18 @@ class MapController extends Controller
 
     public function devices()
     {
-        $fiveMinutesAgo = now()->subMinutes(5)->toDateTimeString();
-
+        // Menggunakan waktu PHP mungkin tidak sinkron dengan waktu MySQL.
+        // Kita bandingkan selisih waktu langsung di query database
         $devices = Location::select('device_id')
             ->selectRaw('MAX(created_at) as last_update')
+            ->selectRaw('TIMESTAMPDIFF(SECOND, MAX(created_at), NOW()) as seconds_ago')
             ->groupBy('device_id')
             ->orderByDesc('last_update')
             ->get()
-            ->map(function ($device) use ($fiveMinutesAgo) {
-                $device->is_active = $device->last_update > $fiveMinutesAgo ? 1 : 0;
+            ->map(function ($device) {
+                // Jika data terakhir kurang dari atau sama dengan 15 detik yang lalu,
+                // atau detik kembaliannya negatif (PHP lebih lambat dari MySQL), anggap Online
+                $device->is_active = ($device->seconds_ago !== null && $device->seconds_ago <= 15) ? 1 : 0;
                 return $device;
             });
 

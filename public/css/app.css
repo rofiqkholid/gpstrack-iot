@@ -702,6 +702,12 @@ body {
     background: var(--bg-tertiary);
 }
 
+.device-status.offline .status-dot {
+    background: var(--danger);
+    animation: none;
+}
+
+
 /* History Table */
 .history-table {
     width: 100%;

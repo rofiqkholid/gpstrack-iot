@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Log;
 use App\Models\Location;
 
 
@@ -20,6 +20,9 @@ class GpsController extends Controller
         ]);
 
         $location = Location::create($validated);
+
+        // Log the   incoming GPS data for debugging
+        Log::info("GPS data received via Serial:", $validated);
 
         return response()->json([
             'message' => 'Location saved successfully',
