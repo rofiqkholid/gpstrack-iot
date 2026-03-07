@@ -108,6 +108,26 @@ class Vehicle extends Model
     }
 
     /**
+     * Check if the linked GPS device is currently online (last update <= 15 seconds ago).
+     */
+    public function isDeviceOnline(): bool
+    {
+        if (!$this->device_id) {
+            return false;
+        }
+
+        $lastLocation = Location::where('device_id', $this->device_id)
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if (!$lastLocation) {
+            return false;
+        }
+
+        return $lastLocation->created_at->diffInSeconds(now()) <= 15;
+    }
+
+    /**
      * Get the last service odometer for a specific component.
      */
     public function getLastServiceOdometer(string $componentName): int

@@ -4,59 +4,69 @@
 @section('header-title', 'Live Tracking Map')
 
 @section('content')
-<div class="stats-grid">
-    <div class="stat-card">
-        <div class="stat-icon blue">
-            <i class="fas fa-satellite-dish"></i>
+@push('styles')
+<style>
+    .leaflet-popup-content-wrapper {
+        border-radius: 0.125rem !important;
+        /* rounded-xs */
+    }
+</style>
+@endpush
+<div class="flex flex-wrap gap-4 mb-6">
+    <div class="flex-1 min-w-[180px] bg-bg-secondary border border-border-color rounded-xs px-5 py-4 flex items-center gap-3.5">
+        <div class="w-10 h-10 rounded-xs flex items-center justify-center bg-accent-light text-accent text-[18px]">
+            <i class="fas fa-satellite-dish w-5 h-5 flex items-center justify-center"></i>
         </div>
-        <div class="stat-info">
-            <h3 id="total-devices">0</h3>
-            <p>Total Perangkat</p>
-        </div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-icon green">
-            <i class="fas fa-check-circle"></i>
-        </div>
-        <div class="stat-info">
-            <h3 id="active-devices">0</h3>
-            <p>Perangkat Aktif</p>
-        </div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-icon orange">
-            <i class="fas fa-car"></i>
-        </div>
-        <div class="stat-info">
-            <h3>{{ $totalVehicles }}</h3>
-            <p>Total Kendaraan</p>
+        <div class="flex flex-col gap-0.5">
+            <h3 id="total-devices" class="text-[22px] font-bold m-0 order-last">0</h3>
+            <p class="text-[12px] text-text-secondary font-medium m-0 order-first">Total Perangkat</p>
         </div>
     </div>
-    <div class="stat-card">
-        <div class="stat-icon {{ $serviceAlertCount > 0 ? 'red' : 'purple' }}">
-            <i class="fas fa-bell"></i>
+    <div class="flex-1 min-w-[180px] bg-bg-secondary border border-border-color rounded-xs px-5 py-4 flex items-center gap-3.5">
+        <div class="w-10 h-10 rounded-xs flex items-center justify-center bg-success-light text-success text-[18px]">
+            <i class="fas fa-check-circle w-5 h-5 flex items-center justify-center"></i>
         </div>
-        <div class="stat-info">
-            <h3>{{ $serviceAlertCount }}</h3>
-            <p>Notifikasi Service</p>
+        <div class="flex flex-col gap-0.5">
+            <h3 id="active-devices" class="text-[22px] font-bold m-0 order-last">0</h3>
+            <p class="text-[12px] text-text-secondary font-medium m-0 order-first">Perangkat Aktif</p>
+        </div>
+    </div>
+    <div class="flex-1 min-w-[180px] bg-bg-secondary border border-border-color rounded-xs px-5 py-4 flex items-center gap-3.5">
+        <div class="w-10 h-10 rounded-xs flex items-center justify-center bg-warning-light text-warning text-[18px]">
+            <i class="fas fa-car w-5 h-5 flex items-center justify-center"></i>
+        </div>
+        <div class="flex flex-col gap-0.5">
+            <h3 class="text-[22px] font-bold m-0 order-last">{{ $totalVehicles }}</h3>
+            <p class="text-[12px] text-text-secondary font-medium m-0 order-first">Total Kendaraan</p>
+        </div>
+    </div>
+    <div class="flex-1 min-w-[180px] bg-bg-secondary border border-border-color rounded-xs px-5 py-4 flex items-center gap-3.5">
+        <div class="w-10 h-10 rounded-xs flex items-center justify-center {{ $serviceAlertCount > 0 ? 'bg-danger-light text-danger' : 'bg-purple-light text-purple' }} text-[18px]">
+            <i class="fas fa-bell w-5 h-5 flex items-center justify-center"></i>
+        </div>
+        <div class="flex flex-col gap-0.5">
+            <h3 class="text-[22px] font-bold m-0 order-last">{{ $serviceAlertCount }}</h3>
+            <p class="text-[12px] text-text-secondary font-medium m-0 order-first">Notifikasi Service</p>
         </div>
     </div>
 </div>
 
-<div class="map-container" style="position: relative;">
-    <div id="map"></div>
+<div class="h-[calc(100vh-288px)] min-h-[400px] rounded-xs overflow-hidden border border-border-color relative z-0">
+    <div id="map" class="h-full w-full"></div>
 
     {{-- Legend Panel --}}
-    <div class="map-legend" id="map-legend">
-        <div class="map-legend-header">
-            <i class="fas fa-list-ul" style="font-size:13px;"></i>
-            <span>Perangkat & Kendaraan</span>
-            <button class="map-legend-toggle" onclick="toggleLegend()" title="Toggle Legend">
-                <i class="fas fa-chevron-down" id="legend-chevron"></i>
+    <div id="map-legend" class="absolute top-2.5 right-2.5 z-[1000] bg-white/95 backdrop-blur-sm border border-border-color rounded-xs shadow-md w-[250px] overflow-hidden flex flex-col transition-all duration-300">
+        <div class="flex items-center justify-between py-2.5 px-3.5 bg-bg-tertiary border-b border-border-color font-semibold text-[13px] text-text-primary">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-list-ul text-[13px]"></i>
+                <span>Perangkat & Kendaraan</span>
+            </div>
+            <button class="bg-transparent border-none cursor-pointer text-text-secondary hover:text-text-primary px-1" onclick="toggleLegend()" title="Toggle Legend">
+                <i class="fas fa-chevron-down transition-transform duration-300" id="legend-chevron"></i>
             </button>
         </div>
-        <div class="map-legend-body" id="legend-body">
-            <div class="map-legend-loading">
+        <div class="max-h-[300px] overflow-y-auto transition-all duration-300" id="legend-body">
+            <div class="p-5 text-center text-[13px] text-text-secondary">
                 <i class="fas fa-spinner fa-spin"></i> Memuat...
             </div>
         </div>
@@ -73,11 +83,14 @@
     var deviceVehicleMap = JSON.parse(document.getElementById('device-vehicle-data').textContent);
 
     // Initialize Map
-    var map = L.map('map').setView([-6.20695, 107.29205], 14);
+    var map = L.map('map', {
+        zoomControl: false
+    }).setView([-6.20695, 107.29205], 14);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        maxZoom: 19
+    L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+        attribution: '&copy; Google',
+        maxZoom: 20,
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
     }).addTo(map);
 
     var markers = {};
@@ -159,7 +172,7 @@
                     var vehicleInfo = '';
                     if (vehicle) {
                         vehicleInfo = `
-                            <div style="background: var(--accent-light, #eff6ff); border-radius: 6px; padding: 6px 8px; margin-bottom: 8px;">
+                            <div style="background: var(--accent-light, #eff6ff); border-radius: 2px; padding: 6px 8px; margin-bottom: 8px;">
                                 <div style="font-weight: 600; font-size: 11px; color: var(--accent, #3b82f6); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">
                                     <i class="fas ${vehicle.type === 'motor' ? 'fa-motorcycle' : 'fa-car'}" style="margin-right:4px;"></i>
                                     ${vehicle.type === 'motor' ? 'Motor' : 'Mobil'}
@@ -262,7 +275,7 @@
     function updateLegend(devices) {
         var body = document.getElementById('legend-body');
         if (!devices || devices.length === 0) {
-            body.innerHTML = '<div class="map-legend-empty"><i class="fas fa-signal"></i> Tidak ada perangkat aktif</div>';
+            body.innerHTML = '<div class="p-5 text-center text-[13px] text-text-secondary flex flex-col items-center gap-2"><i class="fas fa-signal text-[18px]"></i> Tidak ada perangkat aktif</div>';
             return;
         }
 
@@ -278,19 +291,19 @@
                 'fa-microchip';
             var speed = location.speed ? parseFloat(location.speed).toFixed(1) : '0.0';
 
+            var statusIcon = vehicle ? 'fa-link' : 'fa-unlink';
+            var statusColor = vehicle ? 'text-success' : 'text-danger';
+            var statusText = vehicle ? 'Terhubung (' + vehicle.name + ')' : 'Tidak terhubung';
+
             html += `
-                <div class="map-legend-item" onclick="focusDevice('${deviceId}')">
-                    <div class="legend-color-dot" style="background:${color};"></div>
-                    <div class="legend-item-info">
-                        <div class="legend-item-name">
-                            <i class="fas ${typeIcon}" style="font-size:11px;color:${color};margin-right:4px;"></i>
-                            ${name}
+                <div class="flex items-center gap-3 py-2.5 px-3.5 border-b border-border-color cursor-pointer transition-colors duration-150 hover:bg-bg-tertiary last:border-b-0" onclick="focusDevice('${deviceId}')">
+                    <div class="flex-1 overflow-hidden">
+                        <div class="font-semibold text-[13px] text-text-primary mb-0.5 whitespace-nowrap overflow-hidden text-ellipsis flex items-center">
+                            ${deviceId}
                         </div>
-                        <div class="legend-item-meta">
-                            ${deviceId}${plate !== '-' ? ' &bull; ' + plate : ''}
-                        </div>
-                        <div class="legend-item-speed">
-                            <i class="fas fa-tachometer-alt"></i> ${speed} km/h
+                        <div class="text-[11px] ${statusColor} whitespace-nowrap overflow-hidden text-ellipsis flex items-center gap-1">
+                            <i class="fas ${statusIcon} text-[10px]"></i>
+                            ${statusText}
                         </div>
                     </div>
                 </div>
@@ -313,7 +326,11 @@
     function toggleLegend() {
         var body = document.getElementById('legend-body');
         var chevron = document.getElementById('legend-chevron');
-        body.classList.toggle('collapsed');
+        if (body.style.maxHeight === '0px') {
+            body.style.maxHeight = '300px';
+        } else {
+            body.style.maxHeight = '0px';
+        }
         chevron.classList.toggle('fa-chevron-down');
         chevron.classList.toggle('fa-chevron-up');
     }
