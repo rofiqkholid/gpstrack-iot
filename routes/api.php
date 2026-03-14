@@ -4,25 +4,40 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Log;
 
-use App\Http\Controllers\Api\GpsController;
 
-Route::post('/gps', [GpsController::class, 'store']);
+Route::get('/gps', function (Request $request) {
 
-Route::post('/sensor-data', function (Request $request) {
-    // Menerima data dari Jembatan Serial
-    $suhu = $request->input('suhu');
-    $kelembaban = $request->input('kelembaban');
+    $lat = $request->lat;
+    $lng = $request->lng;
+    $deviceId = $request->device_id ?? 'IOT-DEV-01';
 
-    // Catat ke Log Laravel (bisa dilihat di storage/logs/laravel.log)
-    Log::info("Data masuk dari ESP32 via Serial:", ['suhu' => $suhu, 'kelembaban' => $kelembaban]);
+    if (!$lat || !$lng) {
+        return response()->json(['status' => 'error', 'message' => 'Missing coordinates'], 400);
+    }
 
-    // Beri response sukses
+    $data = [
+        'device_id' => $deviceId,
+        'latitude' => (float)$lat,
+        'longitude' => (float)$lng,
+        'speed' => (float)($request->speed ?? 0),
+        'created_at' => now()->toIso8601String()
+    ];
+
+    $filePath = storage_path('gps.txt');
+    
+    // Append JSON line
+    file_put_contents($filePath, json_encode($data) . "\n", FILE_APPEND);
+
+    // Keep it small: Limit to last 2000 lines
+    $lines = file($filePath);
+    if (count($lines) > 2000) {
+        $lines = array_slice($lines, -2000);
+        file_put_contents($filePath, implode("", $lines));
+    }
+
     return response()->json([
-        'status' => 'success',
-        'message' => 'Data berhasil diterima sistem',
-        'data' => [
-            'suhu' => $suhu,
-            'kelembaban' => $kelembaban
-        ]
-    ], 200);
+        'status' => 'ok',
+        'data' => $data
+    ]);
+
 });

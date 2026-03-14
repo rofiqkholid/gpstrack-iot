@@ -102,6 +102,8 @@
             </tbody>
         </table>
     </div>
+    
+    <div id="pagination-container" class="flex justify-end items-center gap-2 mt-4"></div>
 </div>
 
 <div class="bg-bg-secondary border border-border-color rounded-custom p-5 mt-6">
@@ -125,8 +127,77 @@
 
     var polyline = null;
     var historyMarkers = [];
+    var historyData = [];
+    var currentPage = 1;
+    const rowsPerPage = 10;
 
     // Device selection now handled by Alpine.js component above
+
+    function renderTable() {
+        const tbody = document.getElementById('history-body');
+        const paginationContainer = document.getElementById('pagination-container');
+        
+        if (historyData.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="text-center text-text-secondary p-10 border-b border-border-color text-[13px]">
+                        Tidak ada data untuk perangkat ini dalam 7 hari terakhir.
+                    </td>
+                </tr>
+            `;
+            if (paginationContainer) paginationContainer.innerHTML = '';
+            return;
+        }
+
+        const totalPages = Math.ceil(historyData.length / rowsPerPage);
+        const start = (currentPage - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+        const paginatedData = historyData.slice(start, end);
+
+        tbody.innerHTML = paginatedData.map(row => `
+            <tr class="hover:bg-bg-tertiary transition-colors">
+                <td class="py-3 px-4 border-b border-border-color text-[13px]">${new Date(row.created_at).toLocaleString('id-ID')}</td>
+                <td class="py-3 px-4 border-b border-border-color text-[13px]">${parseFloat(row.latitude).toFixed(6)}</td>
+                <td class="py-3 px-4 border-b border-border-color text-[13px]">${parseFloat(row.longitude).toFixed(6)}</td>
+                <td class="py-3 px-4 border-b border-border-color text-[13px]">${row.speed ? row.speed.toFixed(1) + ' km/h' : '-'}</td>
+            </tr>
+        `).join('');
+
+        // Render Pagination
+        if (paginationContainer) {
+            let paginationHTML = '';
+            if (totalPages > 1) {
+                paginationHTML += `
+                    <button onclick="changePage(${currentPage - 1})" class="px-3 py-1 rounded bg-bg-tertiary border border-border-color text-text-primary text-[13px] ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-accent hover:text-white transition-colors'}" ${currentPage === 1 ? 'disabled' : ''}>Prev</button>
+                `;
+                
+                let startPage = Math.max(1, currentPage - 2);
+                let endPage = Math.min(totalPages, startPage + 4);
+                if (endPage - startPage < 4) {
+                    startPage = Math.max(1, endPage - 4);
+                }
+                
+                for (let i = startPage; i <= endPage; i++) {
+                    paginationHTML += `
+                        <button onclick="changePage(${i})" class="px-3 py-1 rounded border border-border-color text-[13px] ${i === currentPage ? 'bg-accent text-white border-accent' : 'bg-bg-tertiary text-text-primary hover:bg-accent-light hover:text-accent transition-colors'}">${i}</button>
+                    `;
+                }
+
+                paginationHTML += `
+                    <button onclick="changePage(${currentPage + 1})" class="px-3 py-1 rounded bg-bg-tertiary border border-border-color text-text-primary text-[13px] ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-accent hover:text-white transition-colors'}" ${currentPage === totalPages ? 'disabled' : ''}>Next</button>
+                `;
+            }
+            paginationContainer.innerHTML = paginationHTML;
+        }
+    }
+
+    function changePage(page) {
+        const totalPages = Math.ceil(historyData.length / rowsPerPage);
+        if (page >= 1 && page <= totalPages) {
+            currentPage = page;
+            renderTable();
+        }
+    }
 
     function loadHistory() {
         const deviceId = document.getElementById('device-select').value;
@@ -138,28 +209,12 @@
         fetch(`/api/history/${deviceId}`)
             .then(res => res.json())
             .then(data => {
-                const tbody = document.getElementById('history-body');
+                historyData = data;
+                currentPage = 1;
+
                 document.getElementById('history-count').textContent = `${data.length} data`;
 
-                if (data.length === 0) {
-                    tbody.innerHTML = `
-                        <tr>
-                            <td colspan="4" class="text-center text-text-secondary p-10 border-b border-border-color text-[13px]">
-                                Tidak ada data untuk perangkat ini dalam 7 hari terakhir.
-                            </td>
-                        </tr>
-                    `;
-                    return;
-                }
-
-                tbody.innerHTML = data.map(row => `
-                    <tr class="hover:bg-bg-tertiary transition-colors">
-                        <td class="py-3 px-4 border-b border-border-color text-[13px]">${new Date(row.created_at).toLocaleString('id-ID')}</td>
-                        <td class="py-3 px-4 border-b border-border-color text-[13px]">${parseFloat(row.latitude).toFixed(6)}</td>
-                        <td class="py-3 px-4 border-b border-border-color text-[13px]">${parseFloat(row.longitude).toFixed(6)}</td>
-                        <td class="py-3 px-4 border-b border-border-color text-[13px]">${row.speed ? row.speed.toFixed(1) + ' km/h' : '-'}</td>
-                    </tr>
-                `).join('');
+                renderTable();
 
                 // Draw on map
                 historyMarkers.forEach(m => historyMap.removeLayer(m));

@@ -261,9 +261,9 @@
                     } else {
                         polylines[deviceId] = L.polyline(points, {
                             color: color,
-                            weight: 3,
-                            opacity: 0.6,
-                            dashArray: '8, 6',
+                            weight: 5,
+                            opacity: 0.9,
+                            smoothFactor: 1
                         }).addTo(map);
                     }
                 });

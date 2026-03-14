@@ -54,60 +54,94 @@ class MapController extends Controller
 
     public function latest()
     {
-        $latestLocations = Location::select('locations.*')
-            ->join(
-                \Illuminate\Support\Facades\DB::raw('(SELECT device_id, MAX(created_at) as latest_at FROM locations GROUP BY device_id) as latest_locations'),
-                function ($join) {
-                    $join->on('locations.device_id', '=', 'latest_locations.device_id')
-                        ->on('locations.created_at', '=', 'latest_locations.latest_at');
-                }
-            )
-            ->get();
+        $filePath = storage_path('gps.txt');
+        if (!file_exists($filePath)) return response()->json([]);
+
+        $lines = file($filePath);
+        $latestLocations = [];
+        $devicesLastSeen = [];
+
+        // Parse from end to get latest for each device
+        foreach (array_reverse($lines) as $line) {
+            $data = $this->parseLine($line);
+            if (!$data) continue;
+
+            $deviceId = $data['device_id'];
+            if (!isset($devicesLastSeen[$deviceId])) {
+                $devicesLastSeen[$deviceId] = true;
+                $latestLocations[] = $data;
+            }
+        }
 
         return response()->json($latestLocations);
     }
 
     public function devices()
     {
-        // Menggunakan waktu PHP mungkin tidak sinkron dengan waktu MySQL.
-        // Kita bandingkan selisih waktu langsung di query database
-        $devices = Location::select('device_id')
-            ->selectRaw('MAX(created_at) as last_update')
-            ->selectRaw('TIMESTAMPDIFF(SECOND, MAX(created_at), NOW()) as seconds_ago')
-            ->groupBy('device_id')
-            ->orderByDesc('last_update')
-            ->get()
-            ->map(function ($device) {
-                // Jika data terakhir kurang dari atau sama dengan 15 detik yang lalu,
-                // atau detik kembaliannya negatif (PHP lebih lambat dari MySQL), anggap Online
-                $device->is_active = ($device->seconds_ago !== null && $device->seconds_ago <= 15) ? 1 : 0;
-                return $device;
-            });
+        $filePath = storage_path('gps.txt');
+        if (!file_exists($filePath)) return response()->json([]);
 
-        return response()->json($devices);
+        $lines = file($filePath);
+        $devices = [];
+
+        foreach (array_reverse($lines) as $line) {
+            $data = $this->parseLine($line);
+            if (!$data) continue;
+
+            $deviceId = $data['device_id'];
+            if (!isset($devices[$deviceId])) {
+                $lastUpdate = $data['created_at'] ?? now()->toIso8601String();
+                $secondsAgo = now()->diffInSeconds(\Illuminate\Support\Carbon::parse($lastUpdate));
+                
+                $devices[$deviceId] = [
+                    'device_id' => $deviceId,
+                    'last_update' => $lastUpdate,
+                    'seconds_ago' => $secondsAgo,
+                    'is_active' => ($secondsAgo <= 15) ? 1 : 0
+                ];
+            }
+        }
+
+        return response()->json(array_values($devices));
     }
 
     public function history($deviceId)
     {
-        $sevenDaysAgo = now()->subDays(7);
+        $filePath = storage_path('gps.txt');
+        if (!file_exists($filePath)) return response()->json([]);
 
-        $history = Location::where('device_id', $deviceId)
-            ->where('created_at', '>=', $sevenDaysAgo)
-            ->orderBy('created_at', 'desc')
-            ->limit(500)
-            ->get();
+        $lines = file($filePath);
+        $history = [];
+
+        foreach (array_reverse($lines) as $line) {
+            $data = $this->parseLine($line);
+            if (!$data || ($data['device_id'] ?? '') !== $deviceId) continue;
+            
+            $history[] = $data;
+            if (count($history) >= 500) break;
+        }
 
         return response()->json($history);
     }
 
     public function stats()
     {
-        $totalLocations = Location::count();
-        $totalDevices = Location::distinct('device_id')->count('device_id');
+        $filePath = storage_path('gps.txt');
+        $totalLines = file_exists($filePath) ? count(file($filePath)) : 0;
+        
+        $devices = [];
+        if ($totalLines > 0) {
+            foreach (file($filePath) as $line) {
+                $data = $this->parseLine($line);
+                if ($data) {
+                    $devices[$data['device_id']] = true;
+                }
+            }
+        }
 
         return response()->json([
-            'total_locations' => $totalLocations,
-            'total_devices' => $totalDevices,
+            'total_locations' => $totalLines,
+            'total_devices' => count($devices),
         ]);
     }
 
@@ -116,23 +150,63 @@ class MapController extends Controller
      */
     public function deviceTrails()
     {
-        $deviceIds = Location::distinct()->pluck('device_id');
+        $filePath = storage_path('gps.txt');
+        if (!file_exists($filePath)) return response()->json([]);
+
+        $lines = file($filePath);
         $trails = [];
 
-        foreach ($deviceIds as $deviceId) {
-            $points = Location::where('device_id', $deviceId)
-                ->orderBy('created_at', 'desc')
-                ->limit(200)
-                ->get(['latitude', 'longitude', 'created_at'])
-                ->reverse()
-                ->values();
+        foreach ($lines as $line) {
+            $data = $this->parseLine($line);
+            if (!$data) continue;
 
-            $trails[$deviceId] = $points->map(fn($p) => [
-                'lat' => (float) $p->latitude,
-                'lng' => (float) $p->longitude,
-            ]);
+            $deviceId = $data['device_id'];
+            if (!isset($trails[$deviceId])) $trails[$deviceId] = [];
+            
+            $trails[$deviceId][] = [
+                'lat' => (float)$data['latitude'],
+                'lng' => (float)$data['longitude']
+            ];
+
+            if (count($trails[$deviceId]) > 200) {
+                array_shift($trails[$deviceId]);
+            }
         }
 
         return response()->json($trails);
+    }
+
+    private function parseLine($line)
+    {
+        $line = trim($line);
+        if (empty($line)) return null;
+
+        // Try JSON first
+        $data = json_decode($line, true);
+        if ($data && isset($data['device_id'], $data['latitude'], $data['longitude'])) {
+            return $data;
+        }
+
+        // Try legacy format 2: [2026-03-15 01:17:13] Device: IOT-DEV-01, Lat: -6.152074, Lng: 107.248421
+        if (preg_match('/\[(.*?)\] Device: (.*?), Lat: (.*?), Lng: (.*?)$/', $line, $matches)) {
+            return [
+                'device_id' => $matches[2],
+                'latitude' => (float)$matches[3],
+                'longitude' => (float)$matches[4],
+                'created_at' => $matches[1]
+            ];
+        }
+
+        // Try legacy format 1: Lat: -6.152049 Lng: 107.248489
+        if (preg_match('/Lat: (.*?) Lng: (.*?)$/', $line, $matches)) {
+            return [
+                'device_id' => 'IOT-DEV-01', // Default for oldest logs
+                'latitude' => (float)$matches[1],
+                'longitude' => (float)$matches[2],
+                'created_at' => null
+            ];
+        }
+
+        return null;
     }
 }
