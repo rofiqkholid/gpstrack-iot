@@ -8,7 +8,45 @@
 <style>
     .leaflet-popup-content-wrapper {
         border-radius: 0.125rem !important;
-        /* rounded-xs */
+    }
+    .user-location-marker {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .pulse-animation {
+        width: 14px;
+        height: 14px;
+        background: #3b82f6;
+        border-radius: 50%;
+        border: 2px solid white;
+        box-shadow: 0 0 0 rgba(59, 130, 246, 0.4);
+        animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+        70% { box-shadow: 0 0 0 15px rgba(59, 130, 246, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+    }
+    .map-control-btn {
+        width: 40px;
+        height: 40px;
+        background: white;
+        border: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: var(--text-primary);
+        font-size: 16px;
+        transition: all 0.2s;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        z-index: 1000;
+        border-radius: 4px;
+    }
+    .map-control-btn:hover {
+        background: #f8fafc;
+        color: #3b82f6;
     }
 </style>
 @endpush
@@ -65,6 +103,13 @@
                 <i class="fas fa-chevron-down transition-transform duration-300" id="legend-chevron"></i>
             </button>
         </div>
+
+        {{-- Map Controls --}}
+        <div class="absolute bottom-24 right-2.5 z-[1000] flex flex-col gap-2">
+            <button class="map-control-btn" onclick="locateUser()" title="Lokasi Saya">
+                <i class="fas fa-location-arrow"></i>
+            </button>
+        </div>
         <div class="max-h-[300px] overflow-y-auto transition-all duration-300" id="legend-body">
             <div class="p-5 text-center text-[13px] text-text-secondary">
                 <i class="fas fa-spinner fa-spin"></i> Memuat...
@@ -98,6 +143,10 @@
     var deviceColors = {};
     var colorPalette = ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
     var colorIndex = 0;
+    
+    // User location variables
+    var userMarker = null;
+    var userCircle = null;
 
     function getDeviceColor(deviceId) {
         if (!deviceColors[deviceId]) {
@@ -338,6 +387,56 @@
     // Initial load
     updateMap();
     loadTrails();
+
+    // User Geolocation
+    function initGeolocation() {
+        if ("geolocation" in navigator) {
+            navigator.geolocation.watchPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    const accuracy = position.coords.accuracy;
+
+                    if (userMarker) {
+                        userMarker.setLatLng([lat, lng]);
+                        userCircle.setLatLng([lat, lng]).setRadius(accuracy);
+                    } else {
+                        // Create pulse marker for user
+                        const pulseIcon = L.divIcon({
+                            className: 'user-location-marker',
+                            html: '<div class="pulse-animation"></div>',
+                            iconSize: [20, 20],
+                            iconAnchor: [10, 10]
+                        });
+                        
+                        userMarker = L.marker([lat, lng], { icon: pulseIcon, zIndexOffset: 1000 }).addTo(map)
+                            .bindPopup("<strong>Lokasi Anda</strong>");
+                        
+                        userCircle = L.circle([lat, lng], {
+                            radius: accuracy,
+                            weight: 1,
+                            color: '#3b82f6',
+                            fillColor: '#3b82f6',
+                            fillOpacity: 0.1
+                        }).addTo(map);
+                    }
+                },
+                (err) => console.warn('Geolocation error:', err),
+                { enableHighAccuracy: true }
+            );
+        }
+    }
+
+    function locateUser() {
+        if (userMarker) {
+            map.setView(userMarker.getLatLng(), 17, { animate: true });
+        } else {
+            alert("Sedang mencari lokasi Anda... Pastikan izin GPS aktif.");
+            initGeolocation();
+        }
+    }
+
+    initGeolocation();
 
     // Refresh every 3 seconds
     setInterval(updateMap, 3000);
