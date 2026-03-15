@@ -37,23 +37,32 @@ class Vehicle extends Model
             return (float) $this->current_odometer;
         }
 
-        $locations = Location::where('device_id', $this->device_id)
-            ->orderBy('created_at', 'asc')
-            ->select('latitude', 'longitude')
-            ->get();
+        $filePath = storage_path('gps.txt');
+        if (!file_exists($filePath)) {
+            return (float) $this->current_odometer;
+        }
 
-        if ($locations->count() < 2) {
+        $lines = file($filePath);
+        $points = [];
+
+        foreach ($lines as $line) {
+            $data = $this->parseGpsLine($line);
+            if ($data && $data['device_id'] === $this->device_id) {
+                $points[] = $data;
+            }
+        }
+
+        if (count($points) < 2) {
             return (float) $this->current_odometer;
         }
 
         $totalDistance = 0;
-
-        for ($i = 1; $i < $locations->count(); $i++) {
+        for ($i = 1; $i < count($points); $i++) {
             $totalDistance += $this->haversine(
-                $locations[$i - 1]->latitude,
-                $locations[$i - 1]->longitude,
-                $locations[$i]->latitude,
-                $locations[$i]->longitude
+                (float)$points[$i - 1]['latitude'],
+                (float)$points[$i - 1]['longitude'],
+                (float)$points[$i]['latitude'],
+                (float)$points[$i]['longitude']
             );
         }
 
@@ -116,15 +125,59 @@ class Vehicle extends Model
             return false;
         }
 
-        $lastLocation = Location::where('device_id', $this->device_id)
-            ->orderBy('created_at', 'desc')
-            ->first();
-
-        if (!$lastLocation) {
+        $filePath = storage_path('gps.txt');
+        if (!file_exists($filePath)) {
             return false;
         }
 
-        return $lastLocation->created_at->diffInSeconds(now()) <= 15;
+        $lines = file($filePath);
+        $lastData = null;
+
+        foreach (array_reverse($lines) as $line) {
+            $data = $this->parseGpsLine($line);
+            if ($data && $data['device_id'] === $this->device_id) {
+                $lastData = $data;
+                break;
+            }
+        }
+
+        if (!$lastData || !isset($lastData['created_at'])) {
+            return false;
+        }
+
+        $lastUpdate = \Illuminate\Support\Carbon::parse($lastData['created_at']);
+        return $lastUpdate->diffInSeconds(now()) <= 30; // 30 seconds buffer
+    }
+
+    private function parseGpsLine($line)
+    {
+        $line = trim($line);
+        if (empty($line)) return null;
+
+        $data = json_decode($line, true);
+        if ($data && isset($data['device_id'], $data['latitude'], $data['longitude'])) {
+            return $data;
+        }
+
+        if (preg_match('/\[(.*?)\] Device: (.*?), Lat: (.*?), Lng: (.*?)$/', $line, $matches)) {
+            return [
+                'device_id' => $matches[2],
+                'latitude' => $matches[3],
+                'longitude' => $matches[4],
+                'created_at' => $matches[1]
+            ];
+        }
+
+        if (preg_match('/Lat: (.*?) Lng: (.*?)$/', $line, $matches)) {
+            return [
+                'device_id' => 'IOT-DEV-01',
+                'latitude' => $matches[1],
+                'longitude' => $matches[2],
+                'created_at' => null
+            ];
+        }
+
+        return null;
     }
 
     /**

@@ -72,11 +72,24 @@ class ServiceController extends Controller
 
     public function createVehicle()
     {
-        // Get available device_ids from locations table
-        $devices = \App\Models\Location::select('device_id')
-            ->groupBy('device_id')
-            ->orderBy('device_id')
-            ->pluck('device_id');
+        // Get available device_ids from gps.txt instead of database
+        $filePath = storage_path('gps.txt');
+        $devices = [];
+        if (file_exists($filePath)) {
+            $lines = file($filePath);
+            foreach ($lines as $line) {
+                $data = json_decode(trim($line), true);
+                // Legacy support for the older formats found in the file
+                if (!$data) {
+                    if (preg_match('/Device: (.*?),/', $line, $matches)) {
+                        $devices[] = $matches[1];
+                    }
+                } elseif (isset($data['device_id'])) {
+                    $devices[] = $data['device_id'];
+                }
+            }
+        }
+        $devices = collect($devices)->unique()->sort()->values();
 
         return view('service.vehicle-form', compact('devices'));
     }
@@ -113,10 +126,22 @@ class ServiceController extends Controller
         $vehicle->syncOdometerFromGps();
         $vehicle->refresh();
 
-        $devices = \App\Models\Location::select('device_id')
-            ->groupBy('device_id')
-            ->orderBy('device_id')
-            ->pluck('device_id');
+        $filePath = storage_path('gps.txt');
+        $devices = [];
+        if (file_exists($filePath)) {
+            $lines = file($filePath);
+            foreach ($lines as $line) {
+                $data = json_decode(trim($line), true);
+                if (!$data) {
+                    if (preg_match('/Device: (.*?),/', $line, $matches)) {
+                        $devices[] = $matches[1];
+                    }
+                } elseif (isset($data['device_id'])) {
+                    $devices[] = $data['device_id'];
+                }
+            }
+        }
+        $devices = collect($devices)->unique()->sort()->values();
 
         return view('service.vehicle-form', compact('vehicle', 'devices'));
     }
