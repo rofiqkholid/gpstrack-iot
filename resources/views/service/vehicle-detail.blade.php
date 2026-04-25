@@ -49,30 +49,59 @@
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-2">
         <div class="bg-bg-tertiary rounded-xs p-4 border border-border-color col-span-2 md:col-span-3 lg:col-span-full mb-2">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <div class="text-[13px] font-medium text-text-secondary mb-1.5 flex items-center gap-1.5"><i class="fas fa-tachometer-alt opacity-70"></i> Odometer Saat Ini</div>
-                    <div class="text-[24px] font-bold text-text-primary flex items-center gap-3">
-                        {{ number_format($vehicle->current_odometer, 0, ',', '.') }} <span class="text-[14px] font-medium text-text-secondary relative top-0.5">KM</span>
-                        @if($vehicle->hasGps())
-                        <span class="inline-flex items-center gap-1 bg-accent-light/30 text-accent text-[11px] font-semibold py-0.5 px-1.5 rounded-xs relative bottom-1">
-                            <i class="fas fa-satellite text-[10px]"></i>
-                            Auto Update
-                        </span>
-                        @endif
-                    </div>
-                </div>
-
-                <div class="sm:text-right">
+                <div class="sm:text-left">
                     <div class="text-[13px] font-medium text-text-secondary mb-1.5 block">Koneksi Perangkat GPS</div>
-                    @if($vehicle->device_id)
+                @if($vehicle->device_id)
                     @php $isOnline = $vehicle->isDeviceOnline(); @endphp
-                    <span class="inline-flex items-center justify-center sm:justify-end gap-1.5 py-1 px-2.5 {{ $isOnline ? 'bg-success-light/30 border-success/30 text-success' : 'bg-danger-light/30 border-danger/30 text-danger' }} border rounded-xs text-[13px] font-bold"><i class="fas fa-satellite-dish"></i> {{ $vehicle->device_id }}</span>
+                    <span class="inline-flex items-center gap-1.5 py-1 px-2.5 {{ $isOnline ? 'bg-success-light/30 border-success/30 text-success' : 'bg-danger-light/30 border-danger/30 text-danger' }} border rounded-xs text-[13px] font-bold"><i class="fas fa-satellite-dish"></i> {{ $vehicle->device_id }}</span>
                     @else
-                    <span class="inline-flex items-center justify-center sm:justify-end py-1 px-2.5 bg-bg-secondary border border-border-color rounded-xs text-[12px] font-medium text-text-secondary italic">Tidak Terhubung</span>
+                    <span class="inline-flex items-center py-1 px-2.5 bg-bg-secondary border border-border-color rounded-xs text-[12px] font-medium text-text-secondary italic">Tidak Terhubung</span>
                     @endif
                 </div>
             </div>
         </div>
+
+        @if($vehicle->hasGps())
+        @php
+            $isOnline = $vehicle->isDeviceOnline();
+            $gpsStats = $vehicle->getGpsStats();
+        @endphp
+        <div class="bg-bg-tertiary rounded-xs p-4 border border-border-color col-span-2 md:col-span-3 lg:col-span-full mb-2">
+            <div class="text-[13px] font-medium text-text-secondary mb-3 flex items-center gap-1.5"><i class="fas fa-satellite opacity-70"></i> Data Tracking GPS</div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {{-- Status Online/Offline --}}
+                <div class="bg-bg-secondary rounded-xs p-3 border border-border-color flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-full flex items-center justify-center text-[14px] {{ $isOnline ? 'bg-success-light text-success' : 'bg-danger-light text-danger' }}">
+                        <i class="fas {{ $isOnline ? 'fa-wifi' : 'fa-wifi' }}"></i>
+                    </div>
+                    <div>
+                        <div class="text-[11px] text-text-secondary font-medium mb-0.5">Status Perangkat</div>
+                        <div class="text-[15px] font-bold {{ $isOnline ? 'text-success' : 'text-danger' }} flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full {{ $isOnline ? 'bg-success animate-pulse' : 'bg-danger' }}"></span>
+                            {{ $isOnline ? 'Online' : 'Offline' }}
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Jarak Tempuh --}}
+                <div class="bg-bg-secondary rounded-xs p-3 border border-border-color flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-full flex items-center justify-center bg-accent-light text-accent text-[14px]">
+                        <i class="fas fa-road"></i>
+                    </div>
+                    <div>
+                        <div class="text-[11px] text-text-secondary font-medium mb-0.5">Jarak Tempuh GPS</div>
+                        <div class="text-[15px] font-bold text-accent">
+                            @if($gpsStats['total_distance_km'] >= 1)
+                                {{ number_format($gpsStats['total_distance_km'], 2, ',', '.') }} <span class="text-[12px] font-medium text-text-secondary">KM</span>
+                            @else
+                                {{ number_format($gpsStats['total_distance_km'] * 1000, 0, ',', '.') }} <span class="text-[12px] font-medium text-text-secondary">meter</span>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
 
         @if($vehicle->plate_number)
         <div class="bg-bg-tertiary rounded-xs p-3.5 border border-border-color">
@@ -106,12 +135,15 @@
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 pb-4 border-b border-border-color">
         <h2 class="text-[16px] font-semibold m-0 text-text-primary">Status Service</h2>
         <span class="text-[13px] text-text-secondary flex items-center gap-2">
-            Berdasarkan odometer {{ number_format($vehicle->current_odometer, 0, ',', '.') }} KM
             @if($vehicle->hasGps())
+            @php $currentKm = round($vehicle->getGpsStats()['total_distance_km']); @endphp
+            Berdasarkan jarak GPS {{ number_format($currentKm, 0, ',', '.') }} KM
             <span class="inline-flex items-center gap-1 bg-accent-light/30 text-accent text-[11px] font-semibold py-0.5 px-1.5 rounded-xs">
                 <i class="fas fa-satellite text-[10px]"></i>
                 Auto Update
             </span>
+            @else
+            Berdasarkan jarak {{ number_format($vehicle->current_odometer, 0, ',', '.') }} KM
             @endif
         </span>
     </div>

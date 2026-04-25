@@ -59,6 +59,30 @@
                     @endif
                 </div>
 
+                @if($vehicle->hasGps())
+                @php
+                    $isOnline = $vehicle->isDeviceOnline();
+                    $gpsStats = $vehicle->getGpsStats();
+                @endphp
+                <div class="flex flex-wrap items-center gap-2.5 mb-3 py-2.5 px-3 bg-bg-tertiary rounded-xs border border-border-color/50">
+                    {{-- Online/Offline --}}
+                    <div class="flex items-center gap-1.5 text-[11px] font-semibold {{ $isOnline ? 'text-success' : 'text-danger' }}">
+                        <span class="w-2 h-2 rounded-full {{ $isOnline ? 'bg-success animate-pulse' : 'bg-danger' }}"></span>
+                        {{ $isOnline ? 'Online' : 'Offline' }}
+                    </div>
+                    <span class="text-border-color text-[10px]">|</span>
+                    {{-- Jarak --}}
+                    <div class="flex items-center gap-1 text-[11px] text-accent font-semibold">
+                        <i class="fas fa-road text-[10px]"></i>
+                        @if($gpsStats['total_distance_km'] >= 1)
+                            {{ number_format($gpsStats['total_distance_km'], 2, ',', '.') }} km
+                        @else
+                            {{ number_format($gpsStats['total_distance_km'] * 1000, 0, ',', '.') }} m
+                        @endif
+                    </div>
+                </div>
+                @endif
+
                 <div class="pt-3 border-t border-border-color/50 text-[12px] flex gap-3 flex-wrap text-text-secondary">
                     @if($vehicle->brand || $vehicle->model)
                     <span class="flex items-center gap-1"><i class="fas fa-tag opacity-60"></i> {{ $vehicle->brand }} {{ $vehicle->model }}</span>
@@ -69,11 +93,7 @@
                 </div>
             </div>
 
-            <div class="p-3 px-4 bg-bg-tertiary border-t border-border-color flex items-center justify-between mt-auto">
-                <div class="text-[12px] font-medium text-text-secondary flex items-center gap-1.5">
-                    <i class="fas fa-tachometer-alt text-[13px]"></i>
-                    {{ number_format($vehicle->current_odometer, 0, ',', '.') }} KM
-                </div>
+            <div class="p-3 px-4 bg-bg-tertiary border-t border-border-color flex items-center justify-end mt-auto">
                 @php $urgentCount = $vehicle->getUrgentCount(); @endphp
                 @if($urgentCount > 0)
                 <div class="inline-flex items-center gap-1.5 bg-danger-light text-danger text-[11px] font-semibold py-1 px-2.5 rounded-xs">

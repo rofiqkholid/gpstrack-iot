@@ -117,7 +117,7 @@ class Vehicle extends Model
     }
 
     /**
-     * Check if the linked GPS device is currently online (last update <= 15 seconds ago).
+     * Check if the linked GPS device is currently online (file updated within last 5 seconds).
      */
     public function isDeviceOnline(): bool
     {
@@ -130,23 +130,74 @@ class Vehicle extends Model
             return false;
         }
 
-        $lines = file($filePath);
-        $lastData = null;
+        // Check if file was modified in the last 5 seconds (device is actively sending data)
+        $fileModifiedAt = filemtime($filePath);
+        $fileSecondsAgo = time() - $fileModifiedAt;
 
-        foreach (array_reverse($lines) as $line) {
+        return $fileSecondsAgo <= 5;
+    }
+
+    /**
+     * Get GPS statistics: total distance (km) and estimated speed (km/h).
+     */
+    public function getGpsStats(): array
+    {
+        $stats = ['total_distance_km' => 0, 'estimated_speed' => 0];
+
+        if (!$this->device_id) {
+            return $stats;
+        }
+
+        $filePath = storage_path('gps.txt');
+        if (!file_exists($filePath)) {
+            return $stats;
+        }
+
+        $lines = file($filePath);
+        $points = [];
+
+        foreach ($lines as $line) {
             $data = $this->parseGpsLine($line);
             if ($data && $data['device_id'] === $this->device_id) {
-                $lastData = $data;
-                break;
+                $points[] = $data;
             }
         }
 
-        if (!$lastData || !isset($lastData['created_at'])) {
-            return false;
+        if (count($points) < 2) {
+            return $stats;
         }
 
-        $lastUpdate = \Illuminate\Support\Carbon::parse($lastData['created_at']);
-        return $lastUpdate->diffInSeconds(now()) <= 30; // 30 seconds buffer
+        // Calculate total distance using Haversine
+        $totalDistance = 0;
+        for ($i = 1; $i < count($points); $i++) {
+            $totalDistance += $this->haversine(
+                (float)$points[$i - 1]['latitude'],
+                (float)$points[$i - 1]['longitude'],
+                (float)$points[$i]['latitude'],
+                (float)$points[$i]['longitude']
+            );
+        }
+
+        // Estimate speed from last 2 points (km/h)
+        $estimatedSpeed = 0;
+        $count = count($points);
+        $p1 = $points[$count - 2];
+        $p2 = $points[$count - 1];
+        $dist = $this->haversine(
+            (float)$p1['latitude'], (float)$p1['longitude'],
+            (float)$p2['latitude'], (float)$p2['longitude']
+        );
+        $t1 = isset($p1['created_at']) ? strtotime($p1['created_at']) : 0;
+        $t2 = isset($p2['created_at']) ? strtotime($p2['created_at']) : 0;
+        $timeDiff = $t2 - $t1;
+        if ($timeDiff > 0) {
+            $estimatedSpeed = ($dist / $timeDiff) * 3600;
+        }
+
+        $stats['total_distance_km'] = round($totalDistance, 3);
+        $stats['estimated_speed'] = round($estimatedSpeed, 1);
+
+        return $stats;
     }
 
     private function parseGpsLine($line)
@@ -203,11 +254,14 @@ class Vehicle extends Model
         $schedules = $this->getServiceSchedules();
         $statuses = [];
 
+        // Gunakan jarak GPS jika terhubung
+        $currentKm = $this->hasGps() ? round($this->getGpsStats()['total_distance_km']) : $this->current_odometer;
+
         foreach ($schedules as $schedule) {
             $lastServiceKm = $this->getLastServiceOdometer($schedule->component);
-            $kmSinceService = $this->current_odometer - $lastServiceKm;
+            $kmSinceService = max(0, $currentKm - $lastServiceKm);
             $kmRemaining = $schedule->interval_km - $kmSinceService;
-            $progress = min(100, max(0, ($kmSinceService / $schedule->interval_km) * 100));
+            $progress = $schedule->interval_km > 0 ? min(100, max(0, ($kmSinceService / $schedule->interval_km) * 100)) : 100;
 
             if ($kmRemaining <= 0) {
                 $status = 'danger';

@@ -198,11 +198,21 @@
     }
 
     function updateMap() {
-        fetch('/api/latest-locations')
-            .then(response => response.json())
-            .then(data => {
+        // Fetch both latest locations and device status in parallel
+        Promise.all([
+            fetch('/api/latest-locations').then(r => r.json()),
+            fetch('/api/devices').then(r => r.json())
+        ])
+            .then(([data, deviceStatusList]) => {
+                // Build a map of device_id -> full device data (includes is_active, total_distance_km, estimated_speed)
+                var deviceStatusMap = {};
+                deviceStatusList.forEach(d => {
+                    deviceStatusMap[d.device_id] = d;
+                });
+
                 document.getElementById('total-devices').textContent = data.length;
-                document.getElementById('active-devices').textContent = data.length;
+                var activeCount = data.filter(d => deviceStatusMap[d.device_id] && deviceStatusMap[d.device_id].is_active).length;
+                document.getElementById('active-devices').textContent = activeCount;
 
                 var allBounds = [];
 
@@ -213,6 +223,9 @@
                     const color = getDeviceColor(deviceId);
                     const speed = location.speed ?? 0;
                     const vehicle = deviceVehicleMap[deviceId] || null;
+                    const isOnline = deviceStatusMap[deviceId] && deviceStatusMap[deviceId].is_active ? true : false;
+                    const totalDistKm = deviceStatusMap[deviceId] ? deviceStatusMap[deviceId].total_distance_km : 0;
+                    const estSpeed = deviceStatusMap[deviceId] ? deviceStatusMap[deviceId].estimated_speed : 0;
 
                     allBounds.push([lat, lng]);
 
@@ -233,6 +246,13 @@
                         `;
                     }
 
+                    // Online/offline status for popup
+                    var statusDot = isOnline
+                        ? '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;margin-right:4px;"></span>'
+                        : '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ef4444;margin-right:4px;"></span>';
+                    var statusLabel = isOnline ? 'Online' : 'Offline';
+                    var statusColor = isOnline ? '#22c55e' : '#ef4444';
+
                     const popupContent = `
                         <div style="font-family: Outfit, sans-serif; min-width: 200px;">
                             <strong style="font-size: 15px; display: block; margin-bottom: 6px;">${vehicleName}</strong>
@@ -241,6 +261,10 @@
                                 <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
                                     <span><i class="fas fa-microchip" style="width:14px;"></i> Device</span>
                                     <span style="font-weight:500;">${deviceId}</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+                                    <span><i class="fas fa-signal" style="width:14px;"></i> Status</span>
+                                    <span style="font-weight:600;color:${statusColor};">${statusDot}${statusLabel}</span>
                                 </div>
                                 <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
                                     <span><i class="fas fa-map-pin" style="width:14px;"></i> Lat</span>
@@ -251,8 +275,8 @@
                                     <span style="font-weight:500;">${lng.toFixed(6)}</span>
                                 </div>
                                 <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
-                                    <span><i class="fas fa-tachometer-alt" style="width:14px;"></i> Kecepatan</span>
-                                    <span style="font-weight:500;">${speed.toFixed(1)} km/h</span>
+                                    <span><i class="fas fa-road" style="width:14px;"></i> Jarak Tempuh</span>
+                                    <span style="font-weight:600;color:#3b82f6;">${(totalDistKm * 1000).toFixed(0)} m (${totalDistKm.toFixed(3)} km)</span>
                                 </div>
                                 <div style="display:flex;justify-content:space-between;">
                                     <span><i class="fas fa-clock" style="width:14px;"></i> Update</span>
@@ -288,8 +312,8 @@
                     window._mapFitted = true;
                 }
 
-                // Update legend
-                updateLegend(data);
+                // Update legend with device status
+                updateLegend(data, deviceStatusMap);
             })
             .catch(err => console.error('Error:', err));
     }
@@ -321,7 +345,7 @@
     }
 
     // Update legend panel
-    function updateLegend(devices) {
+    function updateLegend(devices, deviceStatusMap) {
         var body = document.getElementById('legend-body');
         if (!devices || devices.length === 0) {
             body.innerHTML = '<div class="p-5 text-center text-[13px] text-text-secondary flex flex-col items-center gap-2"><i class="fas fa-signal text-[18px]"></i> Tidak ada perangkat aktif</div>';
@@ -340,9 +364,20 @@
                 'fa-microchip';
             var speed = location.speed ? parseFloat(location.speed).toFixed(1) : '0.0';
 
-            var statusIcon = vehicle ? 'fa-link' : 'fa-unlink';
-            var statusColor = vehicle ? 'text-success' : 'text-danger';
-            var statusText = vehicle ? 'Terhubung (' + vehicle.name + ')' : 'Tidak terhubung';
+            var linkIcon = vehicle ? 'fa-link' : 'fa-unlink';
+            var linkColor = vehicle ? 'text-success' : 'text-danger';
+            var linkText = vehicle ? 'Terhubung (' + vehicle.name + ')' : 'Tidak terhubung';
+
+            // Online/offline status from deviceStatusMap
+            var devData = deviceStatusMap && deviceStatusMap[deviceId] ? deviceStatusMap[deviceId] : null;
+            var isOnline = devData && devData.is_active ? true : false;
+            var totalDistKm = devData ? devData.total_distance_km : 0;
+            var estSpeed = devData ? devData.estimated_speed : 0;
+            var onlineDotStyle = isOnline
+                ? 'width:8px;height:8px;border-radius:50%;background:#22c55e;display:inline-block;animation:pulse 2s infinite;'
+                : 'width:8px;height:8px;border-radius:50%;background:#ef4444;display:inline-block;';
+            var onlineLabel = isOnline ? 'Online' : 'Offline';
+            var onlineColor = isOnline ? 'color:#22c55e;' : 'color:#ef4444;';
 
             html += `
                 <div class="flex items-center gap-3 py-2.5 px-3.5 border-b border-border-color cursor-pointer transition-colors duration-150 hover:bg-bg-tertiary last:border-b-0" onclick="focusDevice('${deviceId}')">
@@ -350,10 +385,18 @@
                         <div class="font-semibold text-[13px] text-text-primary mb-0.5 whitespace-nowrap overflow-hidden text-ellipsis flex items-center">
                             ${deviceId}
                         </div>
-                        <div class="text-[11px] ${statusColor} whitespace-nowrap overflow-hidden text-ellipsis flex items-center gap-1">
-                            <i class="fas ${statusIcon} text-[10px]"></i>
-                            ${statusText}
+                        <div class="text-[11px] ${linkColor} whitespace-nowrap overflow-hidden text-ellipsis flex items-center gap-1">
+                            <i class="fas ${linkIcon} text-[10px]"></i>
+                            ${linkText}
                         </div>
+                        <div style="font-size:11px;color:#64748b;display:flex;align-items:center;gap:4px;margin-top:2px;">
+                            <i class="fas fa-road" style="font-size:10px;color:#3b82f6;"></i>
+                            <span style="font-weight:600;color:#3b82f6;">${totalDistKm >= 1 ? totalDistKm.toFixed(2) + ' km' : (totalDistKm * 1000).toFixed(0) + ' m'}</span>
+                        </div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;${onlineColor}padding:3px 8px;border-radius:20px;background:${isOnline ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)'}">
+                        <span style="${onlineDotStyle}"></span>
+                        ${onlineLabel}
                     </div>
                 </div>
             `;

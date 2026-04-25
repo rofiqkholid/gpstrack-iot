@@ -18,7 +18,12 @@
             <div class="text-[12px] text-text-secondary">
                 <span class="text-[10px] font-bold uppercase tracking-[0.5px] py-0.5 px-2.5 rounded-full border border-current text-current inline-block {{ $vehicle->type === 'motor' ? 'text-blue-500' : 'text-purple-500' }}">{{ ucfirst($vehicle->type) }}</span>
                 @if($vehicle->plate_number) &bull; {{ $vehicle->plate_number }} @endif
-                &bull; Odometer: {{ number_format($vehicle->current_odometer, 0, ',', '.') }} KM
+                @if($vehicle->hasGps())
+                @php $currentKm = $vehicle->getGpsStats()['total_distance_km']; @endphp
+                &bull; Jarak GPS: {{ number_format($currentKm, 3, ',', '.') }} KM
+                @else
+                &bull; Jarak Tempuh: {{ number_format($vehicle->current_odometer, 0, ',', '.') }} KM
+                @endif
             </div>
         </div>
     </div>
@@ -51,7 +56,7 @@
 
             <div class="flex flex-col gap-1.5">
                 <label class="font-semibold text-[13px] text-text-primary flex items-center justify-between" for="odometer_at_service">
-                    <span>Odometer Saat Service (KM) <span class="text-danger ml-1">*</span></span>
+                    <span>Jarak Tempuh Saat Service (KM) <span class="text-danger ml-1">*</span></span>
                     @if($vehicle->hasGps())
                     <span class="inline-flex items-center gap-1 bg-accent-light text-accent text-[10px] font-bold py-0.5 px-1.5 rounded uppercase tracking-wider">
                         <i class="fas fa-satellite text-[10px]"></i>
@@ -59,7 +64,8 @@
                     </span>
                     @endif
                 </label>
-                <input type="number" id="odometer_at_service" name="odometer_at_service" class="w-full py-2 px-3 bg-bg-secondary border border-border-color rounded-md text-[14px] text-text-primary transition-colors focus:outline-none focus:border-accent {{ $vehicle->hasGps() ? '!bg-bg-tertiary/50 !cursor-not-allowed' : '' }}" min="0" value="{{ old('odometer_at_service', $vehicle->current_odometer) }}" {{ $vehicle->hasGps() ? 'readonly' : '' }} required>
+                @php $initialKm = $vehicle->hasGps() ? $vehicle->getGpsStats()['total_distance_km'] : $vehicle->current_odometer; @endphp
+                <input type="number" step="any" id="odometer_at_service" name="odometer_at_service" class="w-full py-2 px-3 bg-bg-secondary border border-border-color rounded-md text-[14px] text-text-primary transition-colors focus:outline-none focus:border-accent {{ $vehicle->hasGps() ? '!bg-bg-tertiary/50 !cursor-not-allowed' : '' }}" min="0" value="{{ old('odometer_at_service', $initialKm) }}" {{ $vehicle->hasGps() ? 'readonly' : '' }} required>
                 @if($vehicle->hasGps())
                 <span class="text-[11px] text-accent flex items-center gap-1">
                     <i class="fas fa-info-circle text-[10px]"></i>

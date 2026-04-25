@@ -81,25 +81,65 @@ class MapController extends Controller
         $filePath = storage_path('gps.txt');
         if (!file_exists($filePath)) return response()->json([]);
 
-        $lines = file($filePath);
-        $devices = [];
+        // Check if file was modified in the last 5 seconds (device is actively sending data)
+        $fileModifiedAt = filemtime($filePath);
+        $fileSecondsAgo = time() - $fileModifiedAt;
+        $isDeviceOnline = ($fileSecondsAgo <= 5);
 
-        foreach (array_reverse($lines) as $line) {
+        $lines = file($filePath);
+        
+        // Collect all points per device (in order) for distance calculation
+        $devicePoints = [];
+        foreach ($lines as $line) {
             $data = $this->parseLine($line);
             if (!$data) continue;
-
             $deviceId = $data['device_id'];
-            if (!isset($devices[$deviceId])) {
-                $lastUpdate = $data['created_at'] ?? now()->toIso8601String();
-                $secondsAgo = now()->diffInSeconds(\Illuminate\Support\Carbon::parse($lastUpdate));
-                
-                $devices[$deviceId] = [
-                    'device_id' => $deviceId,
-                    'last_update' => $lastUpdate,
-                    'seconds_ago' => $secondsAgo,
-                    'is_active' => ($secondsAgo <= 15) ? 1 : 0
-                ];
+            if (!isset($devicePoints[$deviceId])) $devicePoints[$deviceId] = [];
+            $devicePoints[$deviceId][] = $data;
+        }
+
+        $devices = [];
+        foreach ($devicePoints as $deviceId => $points) {
+            $lastPoint = end($points);
+            $lastUpdate = $lastPoint['created_at'] ?? now()->toIso8601String();
+
+            // Calculate total distance using Haversine
+            $totalDistance = 0;
+            for ($i = 1; $i < count($points); $i++) {
+                $totalDistance += $this->haversine(
+                    (float)$points[$i - 1]['latitude'],
+                    (float)$points[$i - 1]['longitude'],
+                    (float)$points[$i]['latitude'],
+                    (float)$points[$i]['longitude']
+                );
             }
+
+            // Estimate speed from last 2 points (km/h)
+            $estimatedSpeed = 0;
+            $count = count($points);
+            if ($count >= 2) {
+                $p1 = $points[$count - 2];
+                $p2 = $points[$count - 1];
+                $dist = $this->haversine(
+                    (float)$p1['latitude'], (float)$p1['longitude'],
+                    (float)$p2['latitude'], (float)$p2['longitude']
+                );
+                $t1 = isset($p1['created_at']) ? strtotime($p1['created_at']) : 0;
+                $t2 = isset($p2['created_at']) ? strtotime($p2['created_at']) : 0;
+                $timeDiff = $t2 - $t1;
+                if ($timeDiff > 0) {
+                    $estimatedSpeed = ($dist / $timeDiff) * 3600; // km/h
+                }
+            }
+
+            $devices[$deviceId] = [
+                'device_id' => $deviceId,
+                'last_update' => $lastUpdate,
+                'seconds_ago' => $fileSecondsAgo,
+                'is_active' => $isDeviceOnline ? 1 : 0,
+                'total_distance_km' => round($totalDistance, 3),
+                'estimated_speed' => round($estimatedSpeed, 1),
+            ];
         }
 
         return response()->json(array_values($devices));
@@ -208,5 +248,20 @@ class MapController extends Controller
         }
 
         return null;
+    }
+
+    /**
+     * Haversine formula: calculate distance (km) between two lat/lng points.
+     */
+    private function haversine(float $lat1, float $lng1, float $lat2, float $lng2): float
+    {
+        $earthRadius = 6371; // km
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLng = deg2rad($lng2 - $lng1);
+        $a = sin($dLat / 2) * sin($dLat / 2)
+            + cos(deg2rad($lat1)) * cos(deg2rad($lat2))
+            * sin($dLng / 2) * sin($dLng / 2);
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+        return $earthRadius * $c;
     }
 }
