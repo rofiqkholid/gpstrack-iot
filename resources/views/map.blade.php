@@ -93,7 +93,7 @@
     <div id="map" class="h-full w-full"></div>
 
     {{-- Legend Panel --}}
-    <div id="map-legend" class="absolute top-4 right-4 z-[1000] bg-white/95 backdrop-blur-sm border border-border-color rounded-xs shadow-md w-[250px] overflow-hidden flex flex-col transition-all duration-300">
+    <div id="map-legend" class="absolute top-10 right-4 z-[1000] bg-white/95 backdrop-blur-sm border border-border-color rounded-xs shadow-md w-[250px] overflow-hidden flex flex-col transition-all duration-300">
         <div class="flex items-center justify-between py-2.5 px-3.5 bg-bg-tertiary border-b border-border-color font-semibold text-[13px] text-text-primary">
             <div class="flex items-center gap-2">
                 <i class="fas fa-list-ul text-[13px]"></i>
