@@ -93,7 +93,7 @@
     <div id="map" class="h-full w-full"></div>
 
     {{-- Legend Panel --}}
-    <div id="map-legend" class="absolute top-2.5 right-2.5 z-[1000] bg-white/95 backdrop-blur-sm border border-border-color rounded-xs shadow-md w-[250px] overflow-hidden flex flex-col transition-all duration-300">
+    <div id="map-legend" class="absolute top-4 right-4 z-[1000] bg-white/95 backdrop-blur-sm border border-border-color rounded-xs shadow-md w-[250px] overflow-hidden flex flex-col transition-all duration-300">
         <div class="flex items-center justify-between py-2.5 px-3.5 bg-bg-tertiary border-b border-border-color font-semibold text-[13px] text-text-primary">
             <div class="flex items-center gap-2">
                 <i class="fas fa-list-ul text-[13px]"></i>
@@ -105,7 +105,7 @@
         </div>
 
         {{-- Map Controls --}}
-        <div class="absolute bottom-24 right-2.5 z-[1000] flex flex-col gap-2">
+        <div class="absolute bottom-24 right-4 z-[1000] flex flex-col gap-2">
             <button class="map-control-btn" onclick="locateUser()" title="Lokasi Saya">
                 <i class="fas fa-location-arrow"></i>
             </button>
