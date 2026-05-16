@@ -239,4 +239,73 @@ class ServiceController extends Controller
 
         return redirect('/vehicles')->with('success', 'Kendaraan berhasil dihapus!');
     }
+
+    // --- API Methods for Mobile App ---
+
+    public function apiAvailableDevices()
+    {
+        $filePath = storage_path('gps.txt');
+        $devices = [];
+        if (file_exists($filePath)) {
+            $lines = file($filePath);
+            foreach ($lines as $line) {
+                $data = json_decode(trim($line), true);
+                if (!$data) {
+                    if (preg_match('/Device: (.*?),/', $line, $matches)) {
+                        $devices[] = $matches[1];
+                    }
+                } elseif (isset($data['device_id'])) {
+                    $devices[] = $data['device_id'];
+                }
+            }
+        }
+        $devices = collect($devices)->unique()->sort()->values();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $devices
+        ]);
+    }
+
+    public function apiStoreVehicle(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'type' => 'required|in:motor,mobil',
+                'plate_number' => 'nullable|string|max:20',
+                'brand' => 'nullable|string|max:100',
+                'model' => 'nullable|string|max:100',
+                'year' => 'nullable|integer|min:1900|max:2099',
+                'current_odometer' => 'nullable|integer|min:0',
+                'device_id' => 'nullable|string|max:255',
+            ]);
+
+            $validated['current_odometer'] = $validated['current_odometer'] ?? 0;
+
+            $vehicle = Vehicle::create($validated);
+
+            if ($vehicle->device_id) {
+                $vehicle->syncOdometerFromGps();
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Kendaraan berhasil ditambahkan!',
+                'data' => $vehicle
+            ], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validasi gagal',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan sistem',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

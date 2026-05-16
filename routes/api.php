@@ -3,7 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Log;
-
+use App\Http\Controllers\ServiceController;
 
 Route::get('/gps', function (Request $request) {
 
@@ -41,3 +41,7 @@ Route::get('/gps', function (Request $request) {
     ]);
 
 });
+
+// API routes for mobile app to handle vehicles
+Route::get('/available-devices', [ServiceController::class, 'apiAvailableDevices']);
+Route::post('/vehicles', [ServiceController::class, 'apiStoreVehicle']);
