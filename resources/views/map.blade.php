@@ -134,6 +134,9 @@
         zoomControl: false
     }).setView([-6.20695, 107.29205], 14);
 
+    // Hilangkan teks Leaflet dan bendera
+    map.attributionControl.setPrefix(false);
+
     L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
         attribution: '&copy; Google',
         maxZoom: 20,
