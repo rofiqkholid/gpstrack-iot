@@ -77,7 +77,12 @@
             @endif
         </a>
 
-       
+        <div class="text-[11px] font-semibold uppercase tracking-[0.5px] text-text-secondary py-2 px-3 mt-4">Aplikasi Mobile</div>
+        <a href="https://expo.dev/accounts/dhenrofiq/projects/mosafemobile/builds/c773c9ce-64a5-45ae-8e50-3c687fdf8324" target="_blank" class="flex items-center gap-2.5 py-2.5 px-3 rounded-lg no-underline text-text-secondary transition-all duration-150 mb-0.5 font-medium text-[14px] hover:bg-bg-tertiary hover:text-text-primary">
+            <span class="w-5 h-5 flex items-center justify-center shrink-0 text-[15px]"><i class="fab fa-android text-success"></i></span>
+            <span class="text-[14px] flex-1">Install APK</span>
+            <span class="w-4 h-4 flex items-center justify-center shrink-0 text-[12px]"><i class="fas fa-external-link-alt"></i></span>
+        </a>
     </nav>
 </aside>
 
