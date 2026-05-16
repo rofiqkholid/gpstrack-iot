@@ -49,4 +49,6 @@ Route::post('/vehicles', [ServiceController::class, 'apiStoreVehicle']);
 Route::put('/vehicles/{id}', [ServiceController::class, 'apiUpdateVehicle']);
 Route::post('/vehicles/{id}/service', [ServiceController::class, 'apiAddServiceRecord']);
 
+Route::get('/device-trails', [\App\Http\Controllers\MapController::class, 'deviceTrails']);
+
 
