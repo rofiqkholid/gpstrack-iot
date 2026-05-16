@@ -440,4 +440,30 @@ class ServiceController extends Controller
             ], 500);
         }
     }
+    public function apiLogin(Request $request)
+    {
+        $request->validate([
+            'username' => 'required|string',
+            'password' => 'required|string',
+        ]);
+
+        $user = \App\Models\User::where('name', $request->username)->first();
+
+        if (!$user || !\Illuminate\Support\Facades\Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Username atau password salah',
+            ], 401);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Login berhasil',
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+            ]
+        ], 200);
+    }
 }
