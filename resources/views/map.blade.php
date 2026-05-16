@@ -104,17 +104,19 @@
             </button>
         </div>
 
-        {{-- Map Controls --}}
-        <div class="absolute bottom-24 right-4 z-[1000] flex flex-col gap-2">
-            <button class="map-control-btn" onclick="locateUser()" title="Lokasi Saya">
-                <i class="fas fa-location-arrow"></i>
-            </button>
-        </div>
+
         <div class="max-h-[300px] overflow-y-auto transition-all duration-300" id="legend-body">
             <div class="p-5 text-center text-[13px] text-text-secondary">
                 <i class="fas fa-spinner fa-spin"></i> Memuat...
             </div>
         </div>
+    </div>
+
+    {{-- Map Controls --}}
+    <div class="absolute bottom-4 right-4 z-[1000] flex flex-col gap-2">
+        <button class="map-control-btn" onclick="locateUser()" title="Lokasi Saya">
+            <i class="fas fa-location-arrow"></i>
+        </button>
     </div>
 </div>
 @endsection
