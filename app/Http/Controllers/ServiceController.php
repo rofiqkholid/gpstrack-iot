@@ -301,6 +301,7 @@ class ServiceController extends Controller
                 'current_odometer' => $vehicle->current_odometer,
                 'is_online' => $isOnline,
                 'service_status' => $needsService ? 'Butuh Service' : 'Semua aman',
+                'service_details' => $serviceStatuses,
             ];
         }
 
@@ -389,6 +390,52 @@ class ServiceController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'Terjadi kesalahan sistem',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function apiAddServiceRecord(Request $request, $id)
+    {
+        try {
+            $vehicle = Vehicle::findOrFail($id);
+            
+            // Validate incoming component name (default to 'Service Rutin')
+            $componentName = $request->input('component', 'Service Rutin');
+
+            // Ensure current_odometer is up to date with GPS
+            if ($vehicle->device_id) {
+                $vehicle->syncOdometerFromGps();
+            }
+
+            // Create service record
+            $record = \App\Models\ServiceRecord::create([
+                'vehicle_id' => $vehicle->id,
+                'service_date' => now()->toDateString(),
+                'odometer_at_service' => $vehicle->current_odometer,
+                'workshop_name' => 'Service Mandiri (Mobile)',
+                'technician_name' => 'User',
+                'notes' => 'Dicatat otomatis dari aplikasi mobile.',
+                'total_cost' => 0,
+            ]);
+
+            // Add component item
+            \App\Models\ServiceRecordItem::create([
+                'service_record_id' => $record->id,
+                'component_name' => $componentName,
+                'description' => 'Service rutin tercatat otomatis',
+                'cost' => 0,
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Catatan service berhasil ditambahkan!',
+                'data' => $record
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal mencatat service',
                 'error' => $e->getMessage()
             ], 500);
         }

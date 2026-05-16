@@ -24,7 +24,20 @@ class Vehicle extends Model
 
     public function getServiceSchedules()
     {
-        return ServiceSchedule::where('vehicle_type', $this->type)->orderBy('interval_km')->get();
+        $schedules = ServiceSchedule::where('vehicle_type', $this->type)->orderBy('interval_km')->get();
+        
+        if ($schedules->isEmpty()) {
+            // Return a default routine service schedule if none exist
+            return collect([
+                (object)[
+                    'component' => 'Service Rutin',
+                    'interval_km' => 2500,
+                    'description' => 'Pengecekan dan service rutin kendaraan setiap 2500 KM.'
+                ]
+            ]);
+        }
+        
+        return $schedules;
     }
 
     /**

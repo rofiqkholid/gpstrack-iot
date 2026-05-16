@@ -47,4 +47,6 @@ Route::get('/available-devices', [ServiceController::class, 'apiAvailableDevices
 Route::get('/vehicles', [ServiceController::class, 'apiGetVehicles']);
 Route::post('/vehicles', [ServiceController::class, 'apiStoreVehicle']);
 Route::put('/vehicles/{id}', [ServiceController::class, 'apiUpdateVehicle']);
+Route::post('/vehicles/{id}/service', [ServiceController::class, 'apiAddServiceRecord']);
+
 
