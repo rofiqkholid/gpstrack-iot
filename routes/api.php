@@ -44,4 +44,6 @@ Route::get('/gps', function (Request $request) {
 
 // API routes for mobile app to handle vehicles
 Route::get('/available-devices', [ServiceController::class, 'apiAvailableDevices']);
+Route::get('/vehicles', [ServiceController::class, 'apiGetVehicles']);
 Route::post('/vehicles', [ServiceController::class, 'apiStoreVehicle']);
+

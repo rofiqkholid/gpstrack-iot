@@ -267,6 +267,49 @@ class ServiceController extends Controller
         ]);
     }
 
+    public function apiGetVehicles()
+    {
+        $vehicles = Vehicle::orderByDesc('updated_at')->get();
+        $vehicleData = [];
+
+        foreach ($vehicles as $vehicle) {
+            $vehicle->syncOdometerFromGps();
+            
+            // Get GPS distance string (in meters if < 1km, km otherwise)
+            $odometerDisplay = $vehicle->current_odometer . ' km';
+            
+            $isOnline = $vehicle->isDeviceOnline();
+            
+            $serviceStatuses = $vehicle->getServiceStatus();
+            $needsService = false;
+            foreach ($serviceStatuses as $s) {
+                if ($s['status'] === 'danger' || $s['status'] === 'warning') {
+                    $needsService = true;
+                    break;
+                }
+            }
+
+            $vehicleData[] = [
+                'id' => $vehicle->id,
+                'name' => $vehicle->name,
+                'type' => $vehicle->type,
+                'plate_number' => $vehicle->plate_number,
+                'brand' => $vehicle->brand,
+                'model' => $vehicle->model,
+                'year' => $vehicle->year,
+                'device_id' => $vehicle->device_id,
+                'current_odometer' => $vehicle->current_odometer,
+                'is_online' => $isOnline,
+                'service_status' => $needsService ? 'Butuh Service' : 'Semua aman',
+            ];
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $vehicleData
+        ]);
+    }
+
     public function apiStoreVehicle(Request $request)
     {
         try {
