@@ -351,4 +351,46 @@ class ServiceController extends Controller
             ], 500);
         }
     }
+
+    public function apiUpdateVehicle(Request $request, $id)
+    {
+        try {
+            $vehicle = Vehicle::findOrFail($id);
+
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'type' => 'required|in:motor,mobil',
+                'plate_number' => 'nullable|string|max:20',
+                'brand' => 'nullable|string|max:100',
+                'model' => 'nullable|string|max:100',
+                'year' => 'nullable|integer|min:1900|max:2099',
+                'current_odometer' => 'nullable|integer|min:0',
+                'device_id' => 'nullable|string|max:255',
+            ]);
+
+            $vehicle->update($validated);
+
+            if ($vehicle->device_id) {
+                $vehicle->syncOdometerFromGps();
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Kendaraan berhasil diperbarui!',
+                'data' => $vehicle
+            ], 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validasi gagal',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan sistem',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }
