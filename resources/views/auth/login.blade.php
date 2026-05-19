@@ -49,7 +49,7 @@
     <div class="w-full max-w-[460px] z-10 transition-all duration-300 transform">
         <!-- Logo and Heading -->
         <div class="text-center mb-8">
-            <div class="inline-flex w-14 h-14 bg-accent/10 rounded-2xl items-center justify-center text-accent text-[24px] mb-3 shadow-md shadow-accent/5 border border-accent/20">
+            <div class="inline-flex w-14 h-14 bg-accent/10 rounded-none items-center justify-center text-accent text-[24px] mb-3 shadow-md shadow-accent/5 border border-accent/20">
                 <i class="fas fa-globe-asia"></i>
             </div>
             <h1 class="text-[26px] font-bold tracking-tight text-text-primary">GPS<span class="text-accent">Track</span></h1>
@@ -57,12 +57,12 @@
         </div>
 
         <!-- Premium White Login Card -->
-        <div class="bg-bg-card border border-border-color rounded-3xl p-7 md:p-9 shadow-xl shadow-slate-200/50">
+        <div class="bg-bg-card border border-border-color rounded-none p-7 md:p-9 shadow-xl shadow-slate-200/50">
             <h2 class="text-xl font-semibold mb-6 text-text-primary">Masuk ke Dashboard</h2>
 
             @if($errors->any())
             <!-- Error Notification -->
-            <div class="mb-5 bg-danger/5 border border-danger/20 rounded-2xl p-4 flex gap-3 text-sm text-danger animate-shake">
+            <div class="mb-5 bg-danger/5 border border-danger/20 rounded-none p-4 flex gap-3 text-sm text-danger animate-shake">
                 <i class="fas fa-exclamation-circle text-base mt-0.5 shrink-0"></i>
                 <div>
                     <span class="font-bold">Gagal Masuk:</span>
@@ -73,7 +73,7 @@
 
             @if(session('success'))
             <!-- Success Notification -->
-            <div class="mb-5 bg-success/5 border border-success/20 rounded-2xl p-4 flex gap-3 text-sm text-success">
+            <div class="mb-5 bg-success/5 border border-success/20 rounded-none p-4 flex gap-3 text-sm text-success">
                 <i class="fas fa-check-circle text-base mt-0.5 shrink-0"></i>
                 <div>
                     <p class="text-success/95">{{ session('success') }}</p>
@@ -92,7 +92,7 @@
                             <i class="fas fa-user"></i>
                         </span>
                         <input type="text" name="username" id="username" 
-                            class="w-full bg-bg-light border border-border-color hover:border-slate-300 focus:border-accent focus:bg-white focus:ring-1 focus:ring-accent rounded-2xl py-3.5 pl-11 pr-4 text-sm text-text-primary placeholder-text-secondary/40 outline-none transition-all duration-200"
+                            class="w-full bg-bg-light border border-border-color hover:border-slate-300 focus:border-accent focus:bg-white focus:ring-1 focus:ring-accent rounded-none py-3.5 pl-11 pr-4 text-sm text-text-primary placeholder-text-secondary/40 outline-none transition-all duration-200"
                             placeholder="Masukkan Username" 
                             value="{{ old('username') }}" 
                             required autofocus>
@@ -109,7 +109,7 @@
                             <i class="fas fa-lock"></i>
                         </span>
                         <input type="password" name="password" id="password" 
-                            class="w-full bg-bg-light border border-border-color hover:border-slate-300 focus:border-accent focus:bg-white focus:ring-1 focus:ring-accent rounded-2xl py-3.5 pl-11 pr-4 text-sm text-text-primary placeholder-text-secondary/40 outline-none transition-all duration-200"
+                            class="w-full bg-bg-light border border-border-color hover:border-slate-300 focus:border-accent focus:bg-white focus:ring-1 focus:ring-accent rounded-none py-3.5 pl-11 pr-4 text-sm text-text-primary placeholder-text-secondary/40 outline-none transition-all duration-200"
                             placeholder="••••••••" 
                             required>
                     </div>
@@ -118,14 +118,14 @@
                 <!-- Remember Me -->
                 <div class="flex items-center justify-between pt-1">
                     <label class="flex items-center gap-2.5 cursor-pointer group">
-                        <input type="checkbox" name="remember" class="accent-accent w-4 h-4 rounded border-border-color bg-white text-accent focus:ring-0 cursor-pointer">
+                        <input type="checkbox" name="remember" class="accent-accent w-4 h-4 rounded-none border-border-color bg-white text-accent focus:ring-0 cursor-pointer">
                         <span class="text-xs text-text-secondary font-medium group-hover:text-text-primary transition-colors duration-150">Ingat Saya</span>
                     </label>
                 </div>
 
                 <!-- Submit Button -->
                 <button type="submit" 
-                    class="w-full bg-accent hover:bg-accent-dark text-white font-bold py-3.5 px-4 rounded-2xl shadow-lg shadow-accent/20 hover:shadow-accent-dark/25 transition-all duration-200 text-sm flex items-center justify-center gap-2 group cursor-pointer">
+                    class="w-full bg-accent hover:bg-accent-dark text-white font-bold py-3.5 px-4 rounded-none shadow-lg shadow-accent/20 hover:shadow-accent-dark/25 transition-all duration-200 text-sm flex items-center justify-center gap-2 group cursor-pointer">
                     <span>Masuk Aplikasi</span>
                     <i class="fas fa-arrow-right text-xs group-hover:translate-x-1 transition-transform duration-200"></i>
                 </button>
