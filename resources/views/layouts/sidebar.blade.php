@@ -83,6 +83,15 @@
             <span class="text-[14px] flex-1">Install APK</span>
             <span class="w-4 h-4 flex items-center justify-center shrink-0 text-[12px]"><i class="fas fa-external-link-alt"></i></span>
         </a>
+
+        <div class="text-[11px] font-semibold uppercase tracking-[0.5px] text-text-secondary py-2 px-3 mt-4">Akun</div>
+        <form action="{{ route('logout') }}" method="POST" class="m-0" id="logout-form">
+            @csrf
+            <button type="submit" class="flex items-center gap-2.5 py-2.5 px-3 rounded-lg no-underline text-text-secondary transition-all duration-150 mb-0.5 font-medium text-[14px] hover:bg-bg-tertiary hover:text-text-primary w-full text-left bg-transparent border-none cursor-pointer">
+                <span class="w-5 h-5 flex items-center justify-center shrink-0 text-[15px]"><i class="fas fa-sign-out-alt text-danger"></i></span>
+                <span class="text-[14px] flex-1">Keluar / Logout</span>
+            </button>
+        </form>
     </nav>
 </aside>
 
