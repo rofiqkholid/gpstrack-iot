@@ -4,6 +4,9 @@
       "eas": {
         "projectId": "8c755fd8-e0f7-4857-aaf3-ca7dd0187d5c"
       }
+    },
+    "android": {
+      "package": "com.dhenrofiq.iotapp"
     }
   }
 }
