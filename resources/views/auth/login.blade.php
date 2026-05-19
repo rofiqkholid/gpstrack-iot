@@ -84,17 +84,17 @@
             <form action="{{ url('/login') }}" method="POST" class="space-y-5">
                 @csrf
                 
-                <!-- Email Input -->
+                <!-- Username Input -->
                 <div class="space-y-2">
-                    <label for="email" class="text-xs font-semibold uppercase tracking-wider text-text-secondary">Alamat Email</label>
+                    <label for="username" class="text-xs font-semibold uppercase tracking-wider text-text-secondary">Username</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-text-secondary text-[15px]">
-                            <i class="fas fa-envelope"></i>
+                            <i class="fas fa-user"></i>
                         </span>
-                        <input type="email" name="email" id="email" 
+                        <input type="text" name="username" id="username" 
                             class="w-full bg-bg-input/60 border border-border-color hover:border-text-secondary/30 focus:border-accent focus:bg-bg-input focus:ring-1 focus:ring-accent rounded-2xl py-3.5 pl-11 pr-4 text-sm text-text-primary placeholder-text-secondary/50 outline-none transition-all duration-200"
-                            placeholder="admin@mosafe.com" 
-                            value="{{ old('email') }}" 
+                            placeholder="Masukkan Username" 
+                            value="{{ old('username') }}" 
                             required autofocus>
                     </div>
                 </div>
@@ -130,19 +130,6 @@
                     <i class="fas fa-arrow-right text-xs group-hover:translate-x-1 transition-transform duration-200"></i>
                 </button>
             </form>
-
-            <!-- Pre-filled Credentials Helper -->
-            <div class="mt-7 pt-6 border-t border-border-color/50 text-center">
-                <div class="bg-slate-800/40 rounded-2xl p-4 border border-border-color/40 inline-block w-full text-left">
-                    <p class="text-xs font-bold text-accent mb-2 flex items-center gap-1.5">
-                        <i class="fas fa-info-circle"></i> Akun Uji Coba Bawaan:
-                    </p>
-                    <div class="space-y-1 text-xs text-text-secondary font-medium">
-                        <p class="flex justify-between"><span>Email:</span> <span class="text-text-primary font-mono select-all">admin@mosafe.com</span></p>
-                        <p class="flex justify-between"><span>Password:</span> <span class="text-text-primary font-mono select-all">sayaadmin</span></p>
-                    </div>
-                </div>
-            </div>
         </div>
 
         <!-- Footer copy -->
