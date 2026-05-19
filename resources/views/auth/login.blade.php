@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="h-full overflow-hidden">
 
 <head>
     <meta charset="utf-8">
@@ -41,7 +41,7 @@
     </script>
 </head>
 
-<body class="font-sans bg-bg-light text-text-primary min-h-screen flex flex-col items-center justify-center p-4 relative overflow-x-hidden">
+<body class="font-sans bg-bg-light text-text-primary h-full flex flex-col items-center justify-center p-4 relative overflow-hidden">
     <!-- Abstract Background Gradients (Light theme) -->
     <div class="absolute w-[300px] h-[300px] sm:w-[450px] sm:h-[450px] rounded-full bg-blue-400/5 blur-[100px] sm:blur-[130px] top-[-10%] left-[-10%] pointer-events-none"></div>
     <div class="absolute w-[350px] h-[350px] sm:w-[500px] sm:h-[500px] rounded-full bg-indigo-300/5 blur-[110px] sm:blur-[140px] bottom-[-10%] right-[-10%] pointer-events-none"></div>
