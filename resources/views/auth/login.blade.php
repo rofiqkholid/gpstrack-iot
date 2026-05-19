@@ -41,12 +41,12 @@
     </script>
 </head>
 
-<body class="font-sans bg-bg-light text-text-primary min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+<body class="font-sans bg-bg-light text-text-primary min-h-screen flex flex-col items-center justify-center p-4 relative overflow-x-hidden">
     <!-- Abstract Background Gradients (Light theme) -->
-    <div class="absolute w-[450px] h-[450px] rounded-full bg-blue-400/10 blur-[130px] top-[-10%] left-[-10%] pointer-events-none"></div>
-    <div class="absolute w-[500px] h-[500px] rounded-full bg-indigo-300/10 blur-[140px] bottom-[-10%] right-[-10%] pointer-events-none"></div>
+    <div class="absolute w-[300px] h-[300px] sm:w-[450px] sm:h-[450px] rounded-full bg-blue-400/5 blur-[100px] sm:blur-[130px] top-[-10%] left-[-10%] pointer-events-none"></div>
+    <div class="absolute w-[350px] h-[350px] sm:w-[500px] sm:h-[500px] rounded-full bg-indigo-300/5 blur-[110px] sm:blur-[140px] bottom-[-10%] right-[-10%] pointer-events-none"></div>
 
-    <div class="w-full max-w-[460px] z-10 transition-all duration-300 transform">
+    <div class="w-full max-w-[420px] z-10 transition-all duration-300 transform px-1">
         <!-- Logo and Heading -->
         <div class="text-center mb-8">
             <div class="inline-flex w-14 h-14 bg-accent/10 rounded-none items-center justify-center text-accent text-[24px] mb-3 shadow-md shadow-accent/5 border border-accent/20">
@@ -57,7 +57,7 @@
         </div>
 
         <!-- Premium White Login Card -->
-        <div class="bg-bg-card border border-border-color rounded-none p-7 md:p-9 shadow-xl shadow-slate-200/50">
+        <div class="bg-bg-card border border-border-color rounded-none p-6 sm:p-8 shadow-xl shadow-slate-200/50">
             <h2 class="text-xl font-semibold mb-6 text-text-primary">Masuk ke Dashboard</h2>
 
             @if($errors->any())
