@@ -227,7 +227,7 @@ class MapController extends Controller
             return $data;
         }
 
-        // Try legacy format 2: [2026-03-15 01:17:13] Device: IOT-DEV-01, Lat: -6.152074, Lng: 107.248421
+        // Try legacy format 2: [2026-03-15 01:17:13] Device: DEVICE-01, Lat: -6.152074, Lng: 107.248421
         if (preg_match('/\[(.*?)\] Device: (.*?), Lat: (.*?), Lng: (.*?)$/', $line, $matches)) {
             return [
                 'device_id' => $matches[2],
@@ -240,7 +240,7 @@ class MapController extends Controller
         // Try legacy format 1: Lat: -6.152049 Lng: 107.248489
         if (preg_match('/Lat: (.*?) Lng: (.*?)$/', $line, $matches)) {
             return [
-                'device_id' => 'IOT-DEV-01', // Default for oldest logs
+                'device_id' => 'DEVICE-01', // Default for oldest logs
                 'latitude' => (float)$matches[1],
                 'longitude' => (float)$matches[2],
                 'created_at' => null

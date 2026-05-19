@@ -190,6 +190,16 @@ class ServiceController extends Controller
     {
         $vehicle = Vehicle::findOrFail($vehicleId);
 
+        // Pre-round odometer to integer if decimal value is submitted
+        if ($request->has('odometer_at_service')) {
+            $val = $request->input('odometer_at_service');
+            if (is_numeric($val)) {
+                $request->merge([
+                    'odometer_at_service' => (int) round($val)
+                ]);
+            }
+        }
+
         $validated = $request->validate([
             'service_date' => 'required|date',
             'odometer_at_service' => 'required|integer|min:0',
@@ -238,6 +248,25 @@ class ServiceController extends Controller
         $vehicle->delete();
 
         return redirect('/vehicles')->with('success', 'Kendaraan berhasil dihapus!');
+    }
+
+    public function deleteServiceRecord($id)
+    {
+        $record = ServiceRecord::findOrFail($id);
+        $vehicleId = $record->vehicle_id;
+
+        $record->items()->delete();
+        $record->delete();
+
+        $vehicle = Vehicle::findOrFail($vehicleId);
+        if ($vehicle->device_id) {
+            $vehicle->syncOdometerFromGps();
+        } else {
+            $lastOdo = $vehicle->serviceRecords()->max('odometer_at_service') ?? 0;
+            $vehicle->update(['current_odometer' => $lastOdo]);
+        }
+
+        return redirect("/vehicles/{$vehicleId}")->with('success', 'Riwayat service berhasil di-rollback!');
     }
 
     // --- API Methods for Mobile App ---

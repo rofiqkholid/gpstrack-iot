@@ -19,7 +19,7 @@ class Vehicle extends Model
 
     public function serviceRecords()
     {
-        return $this->hasMany(ServiceRecord::class)->orderByDesc('service_date');
+        return $this->hasMany(ServiceRecord::class)->orderByDesc('service_date')->orderByDesc('id');
     }
 
     public function getServiceSchedules()
@@ -234,7 +234,7 @@ class Vehicle extends Model
 
         if (preg_match('/Lat: (.*?) Lng: (.*?)$/', $line, $matches)) {
             return [
-                'device_id' => 'IOT-DEV-01',
+                'device_id' => 'DEVICE-01',
                 'latitude' => $matches[1],
                 'longitude' => $matches[2],
                 'created_at' => null
@@ -255,7 +255,20 @@ class Vehicle extends Model
             })
             ->first();
 
-        return $lastRecord ? $lastRecord->odometer_at_service : 0;
+        if ($lastRecord) {
+            return $lastRecord->odometer_at_service;
+        }
+
+        // Fallback: If no explicit match and the component is the general 'Service Rutin',
+        // fall back to the odometer of any latest service record.
+        if ($componentName === 'Service Rutin') {
+            $anyRecord = $this->serviceRecords()->first();
+            if ($anyRecord) {
+                return $anyRecord->odometer_at_service;
+            }
+        }
+
+        return 0;
     }
 
     /**

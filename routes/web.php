@@ -39,4 +39,5 @@ Route::middleware('auth')->group(function () {
     Route::delete('/vehicles/{id}', [ServiceController::class, 'deleteVehicle']);
     Route::get('/vehicles/{id}/service/create', [ServiceController::class, 'createServiceRecord']);
     Route::post('/vehicles/{id}/service', [ServiceController::class, 'storeServiceRecord']);
+    Route::delete('/service-records/{id}', [ServiceController::class, 'deleteServiceRecord']);
 });

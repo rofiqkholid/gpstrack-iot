@@ -6,15 +6,15 @@
 @section('content')
 <div class="bg-bg-secondary border border-border-color rounded-custom p-5">
     <div class="flex items-center justify-between mb-4 pb-4 border-b border-border-color">
-        <h2 class="text-[16px] font-semibold m-0">Kendaraan Terdaftar</h2>
-        <a href="/vehicles/create" class="inline-flex items-center justify-center gap-1.5 py-2 px-4 rounded-xs text-[14px] font-medium text-white bg-accent border-none cursor-pointer transition-all duration-150 hover:bg-blue-600 no-underline">
+        <h2 class="text-[20px] font-semibold m-0">Kendaraan Terdaftar</h2>
+        <a href="/vehicles/create" class="inline-flex items-center justify-center gap-2 py-2 px-5 rounded-xs text-[16px] font-medium text-white bg-accent border-none cursor-pointer transition-all duration-150 hover:bg-blue-600 no-underline">
             <i class="fas fa-plus"></i>
             Tambah Kendaraan
         </a>
     </div>
 
     @if(session('success'))
-    <div class="flex items-center gap-2 p-3.5 mb-5 bg-success-light border border-success/30 text-[13px] font-medium text-success rounded-xs">
+    <div class="flex items-center gap-2 p-3.5 mb-5 bg-success-light border border-success/30 text-[15px] font-medium text-success rounded-xs">
         <i class="fas fa-check-circle"></i>
         {{ session('success') }}
     </div>
@@ -32,7 +32,7 @@
         <a href="/vehicles/{{ $vehicle->id }}" class="flex flex-col bg-bg-secondary border border-border-color rounded-xs transition-all duration-200 cursor-pointer overflow-hidden no-underline text-inherit">
             <div class="flex items-center justify-between p-4 border-b border-border-color bg-bg-tertiary">
                 <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-full flex items-center justify-center text-white text-[14px] shadow-sm {{ $vehicle->type === 'motor' ? 'bg-blue-500' : 'bg-purple-500' }}">
+                    <div class="w-10 h-10 rounded-none flex items-center justify-center text-white text-[16px] shadow-sm {{ $vehicle->type === 'motor' ? 'bg-blue-500' : 'bg-purple-500' }}">
                         @if($vehicle->type === 'motor')
                         <i class="fas fa-motorcycle"></i>
                         @else
@@ -40,9 +40,9 @@
                         @endif
                     </div>
                     <div class="flex flex-col">
-                        <h3 class="text-[15px] font-bold text-text-primary m-0 whitespace-nowrap overflow-hidden text-ellipsis">{{ $vehicle->name }}</h3>
+                        <h3 class="text-[18px] font-bold text-text-primary m-0 whitespace-nowrap overflow-hidden text-ellipsis">{{ $vehicle->name }}</h3>
                         @if($vehicle->plate_number)
-                        <span class="text-[12px] text-text-secondary font-mono mt-0.5 whitespace-nowrap">{{ $vehicle->plate_number }}</span>
+                        <span class="text-[14px] text-text-secondary mt-0.5 whitespace-nowrap">{{ $vehicle->plate_number }}</span>
                         @endif
                     </div>
                 </div>
@@ -50,12 +50,12 @@
 
             <div class="p-4 flex-1 flex flex-col justify-center">
                 <div class="mb-3">
-                    <span class="text-[11px] text-text-secondary font-medium uppercase tracking-wider mb-1 block">Koneksi Perangkat GPS</span>
+                    <span class="text-[13px] text-text-secondary font-semibold mb-1 block">Koneksi Perangkat GPS</span>
                     @if($vehicle->device_id)
                     @php $isOnline = $vehicle->isDeviceOnline(); @endphp
-                    <span class="inline-flex items-center gap-1.5 py-1 px-2.5 {{ $isOnline ? 'bg-success-light/30 border-success/30 text-success' : 'bg-danger-light/30 border-danger/30 text-danger' }} border rounded-xs text-[13px] font-bold"><i class="fas fa-satellite-dish"></i> {{ $vehicle->device_id }}</span>
+                    <span class="inline-flex items-center gap-1.5 py-1 px-2.5 {{ $isOnline ? 'bg-success-light/30 border-success/30 text-success' : 'bg-danger-light/30 border-danger/30 text-danger' }} border rounded-xs text-[15px] font-bold"><i class="fas fa-satellite-dish"></i> {{ $vehicle->device_id }}</span>
                     @else
-                    <span class="inline-block py-1 px-2.5 bg-bg-tertiary border border-border-color rounded-xs text-[12px] font-medium text-text-secondary italic">Tidak Terhubung</span>
+                    <span class="inline-block py-1 px-2.5 bg-bg-tertiary border border-border-color rounded-xs text-[14px] font-medium text-text-secondary italic">Tidak Terhubung</span>
                     @endif
                 </div>
 
@@ -66,14 +66,14 @@
                 @endphp
                 <div class="flex flex-wrap items-center gap-2.5 mb-3 py-2.5 px-3 bg-bg-tertiary rounded-xs border border-border-color/50">
                     {{-- Online/Offline --}}
-                    <div class="flex items-center gap-1.5 text-[11px] font-semibold {{ $isOnline ? 'text-success' : 'text-danger' }}">
-                        <span class="w-2 h-2 rounded-full {{ $isOnline ? 'bg-success animate-pulse' : 'bg-danger' }}"></span>
+                    <div class="flex items-center gap-1.5 text-[13px] font-bold {{ $isOnline ? 'text-success' : 'text-danger' }}">
+                        <span class="w-2.5 h-2.5 rounded-full {{ $isOnline ? 'bg-success animate-pulse' : 'bg-danger' }}"></span>
                         {{ $isOnline ? 'Online' : 'Offline' }}
                     </div>
-                    <span class="text-border-color text-[10px]">|</span>
+                    <span class="text-border-color text-[11px]">|</span>
                     {{-- Jarak --}}
-                    <div class="flex items-center gap-1 text-[11px] text-accent font-semibold">
-                        <i class="fas fa-road text-[10px]"></i>
+                    <div class="flex items-center gap-1.5 text-[13px] text-accent font-bold">
+                        <i class="fas fa-road text-[12px]"></i>
                         @if($gpsStats['total_distance_km'] >= 1)
                             {{ number_format($gpsStats['total_distance_km'], 2, ',', '.') }} km
                         @else
@@ -83,7 +83,7 @@
                 </div>
                 @endif
 
-                <div class="pt-3 border-t border-border-color/50 text-[12px] flex gap-3 flex-wrap text-text-secondary">
+                <div class="pt-3 border-t border-border-color/50 text-[14px] flex gap-3 flex-wrap text-text-secondary">
                     @if($vehicle->brand || $vehicle->model)
                     <span class="flex items-center gap-1"><i class="fas fa-tag opacity-60"></i> {{ $vehicle->brand }} {{ $vehicle->model }}</span>
                     @endif
@@ -96,18 +96,18 @@
             <div class="p-3 px-4 bg-bg-tertiary border-t border-border-color flex items-center justify-end mt-auto">
                 @php $urgentCount = $vehicle->getUrgentCount(); @endphp
                 @if($urgentCount > 0)
-                <div class="inline-flex items-center gap-1.5 bg-danger-light text-danger text-[11px] font-semibold py-1 px-2.5 rounded-xs">
-                    <i class="fas fa-exclamation-triangle text-[11px]"></i>
+                <div class="inline-flex items-center gap-1.5 bg-danger-light text-danger text-[13px] font-bold py-1 px-2.5 rounded-xs">
+                    <i class="fas fa-exclamation-triangle text-[13px]"></i>
                     {{ $urgentCount }} perlu service
                 </div>
                 @elseif($vehicle->needsService())
-                <div class="inline-flex items-center gap-1.5 bg-warning-light text-warning text-[11px] font-semibold py-1 px-2.5 rounded-xs">
-                    <i class="fas fa-exclamation-circle text-[11px]"></i>
+                <div class="inline-flex items-center gap-1.5 bg-warning-light text-warning text-[13px] font-bold py-1 px-2.5 rounded-xs">
+                    <i class="fas fa-exclamation-circle text-[13px]"></i>
                     Mendekati service
                 </div>
                 @else
-                <div class="inline-flex items-center gap-1.5 bg-success-light text-success text-[11px] font-semibold py-1 px-2.5 rounded-xs">
-                    <i class="fas fa-check-circle text-[11px]"></i>
+                <div class="inline-flex items-center gap-1.5 bg-success-light text-success text-[13px] font-bold py-1 px-2.5 rounded-xs">
+                    <i class="fas fa-check-circle text-[13px]"></i>
                     Semua aman
                 </div>
                 @endif

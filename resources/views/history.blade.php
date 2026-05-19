@@ -87,10 +87,10 @@
         <table class="w-full border-collapse" id="history-table">
             <thead>
                 <tr>
-                    <th class="py-3 px-4 text-left border-b border-border-color text-[11px] font-semibold uppercase tracking-[0.5px] text-text-secondary bg-bg-tertiary rounded-l-md">Waktu</th>
-                    <th class="py-3 px-4 text-left border-b border-border-color text-[11px] font-semibold uppercase tracking-[0.5px] text-text-secondary bg-bg-tertiary">Latitude</th>
-                    <th class="py-3 px-4 text-left border-b border-border-color text-[11px] font-semibold uppercase tracking-[0.5px] text-text-secondary bg-bg-tertiary">Longitude</th>
-                    <th class="py-3 px-4 text-left border-b border-border-color text-[11px] font-semibold uppercase tracking-[0.5px] text-text-secondary bg-bg-tertiary rounded-r-md">Kecepatan</th>
+                    <th class="py-3 px-4 text-left border-b border-border-color text-[11px] font-semibold text-text-secondary bg-bg-tertiary rounded-l-md">Waktu</th>
+                    <th class="py-3 px-4 text-left border-b border-border-color text-[11px] font-semibold text-text-secondary bg-bg-tertiary">Latitude</th>
+                    <th class="py-3 px-4 text-left border-b border-border-color text-[11px] font-semibold text-text-secondary bg-bg-tertiary">Longitude</th>
+                    <th class="py-3 px-4 text-left border-b border-border-color text-[11px] font-semibold text-text-secondary bg-bg-tertiary rounded-r-md">Kecepatan</th>
                 </tr>
             </thead>
             <tbody id="history-body">

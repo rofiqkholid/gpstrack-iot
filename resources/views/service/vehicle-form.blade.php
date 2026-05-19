@@ -88,7 +88,7 @@
                 <label class="font-semibold text-[13px] text-text-primary flex items-center justify-between" for="current_odometer">
                     <span>Odometer Awal (KM)</span>
                     <span id="odometer-auto-badge" class="inline-flex items-center gap-1 bg-accent-light text-accent text-[10px] font-bold py-0.5 px-1.5 rounded-xs" style="display: none;">
-                        <i class="fas fa-satellite text-[10px]"></i>
+                        <i class="fas fa-satellite-dish text-[10px]"></i>
                         Auto dari GPS
                     </span>
                 </label>

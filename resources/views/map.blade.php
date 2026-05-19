@@ -53,42 +53,42 @@
 <div class="grid grid-cols-2 md:flex md:flex-wrap gap-3 md:gap-4 mb-6">
     <!-- Card 1 -->
     <div class="md:flex-1 md:min-w-[180px] bg-bg-secondary border border-border-color rounded-xs p-3 md:px-5 md:py-4 flex items-center gap-2.5 md:gap-3.5">
-        <div class="w-8 h-8 md:w-10 md:h-10 rounded-xs flex items-center justify-center bg-accent-light text-accent text-[14px] md:text-[18px] shrink-0">
+        <div class="w-9 h-9 md:w-10 md:h-10 rounded-xs flex items-center justify-center bg-accent-light text-accent text-[16px] md:text-[18px] shrink-0">
             <i class="fas fa-satellite-dish w-4 h-4 md:w-5 md:h-5 flex items-center justify-center"></i>
         </div>
         <div class="flex flex-col gap-0.5 min-w-0">
-            <h3 id="total-devices" class="text-[16px] md:text-[22px] font-bold m-0 order-last truncate">0</h3>
-            <p class="text-[10px] md:text-[12px] text-text-secondary font-medium m-0 order-first truncate">Total Perangkat</p>
+            <h3 id="total-devices" class="text-[18px] md:text-[24px] font-bold m-0 order-last truncate">0</h3>
+            <p class="text-[12px] md:text-[14px] text-text-secondary font-semibold m-0 order-first truncate">Total Perangkat</p>
         </div>
     </div>
     <!-- Card 2 -->
     <div class="md:flex-1 md:min-w-[180px] bg-bg-secondary border border-border-color rounded-xs p-3 md:px-5 md:py-4 flex items-center gap-2.5 md:gap-3.5">
-        <div class="w-8 h-8 md:w-10 md:h-10 rounded-xs flex items-center justify-center bg-success-light text-success text-[14px] md:text-[18px] shrink-0">
+        <div class="w-9 h-9 md:w-10 md:h-10 rounded-xs flex items-center justify-center bg-success-light text-success text-[16px] md:text-[18px] shrink-0">
             <i class="fas fa-check-circle w-4 h-4 md:w-5 md:h-5 flex items-center justify-center"></i>
         </div>
         <div class="flex flex-col gap-0.5 min-w-0">
-            <h3 id="active-devices" class="text-[16px] md:text-[22px] font-bold m-0 order-last truncate">0</h3>
-            <p class="text-[10px] md:text-[12px] text-text-secondary font-medium m-0 order-first truncate">Perangkat Aktif</p>
+            <h3 id="active-devices" class="text-[18px] md:text-[24px] font-bold m-0 order-last truncate">0</h3>
+            <p class="text-[12px] md:text-[14px] text-text-secondary font-semibold m-0 order-first truncate">Perangkat Aktif</p>
         </div>
     </div>
     <!-- Card 3 -->
     <div class="md:flex-1 md:min-w-[180px] bg-bg-secondary border border-border-color rounded-xs p-3 md:px-5 md:py-4 flex items-center gap-2.5 md:gap-3.5">
-        <div class="w-8 h-8 md:w-10 md:h-10 rounded-xs flex items-center justify-center bg-warning-light text-warning text-[14px] md:text-[18px] shrink-0">
+        <div class="w-9 h-9 md:w-10 md:h-10 rounded-xs flex items-center justify-center bg-warning-light text-warning text-[16px] md:text-[18px] shrink-0">
             <i class="fas fa-car w-4 h-4 md:w-5 md:h-5 flex items-center justify-center"></i>
         </div>
         <div class="flex flex-col gap-0.5 min-w-0">
-            <h3 class="text-[16px] md:text-[22px] font-bold m-0 order-last truncate">{{ $totalVehicles }}</h3>
-            <p class="text-[10px] md:text-[12px] text-text-secondary font-medium m-0 order-first truncate">Total Kendaraan</p>
+            <h3 class="text-[18px] md:text-[24px] font-bold m-0 order-last truncate">{{ $totalVehicles }}</h3>
+            <p class="text-[12px] md:text-[14px] text-text-secondary font-semibold m-0 order-first truncate">Total Kendaraan</p>
         </div>
     </div>
     <!-- Card 4 -->
     <div class="md:flex-1 md:min-w-[180px] bg-bg-secondary border border-border-color rounded-xs p-3 md:px-5 md:py-4 flex items-center gap-2.5 md:gap-3.5">
-        <div class="w-8 h-8 md:w-10 md:h-10 rounded-xs flex items-center justify-center {{ $serviceAlertCount > 0 ? 'bg-danger-light text-danger' : 'bg-purple-light text-purple' }} text-[14px] md:text-[18px] shrink-0">
+        <div class="w-9 h-9 md:w-10 md:h-10 rounded-xs flex items-center justify-center {{ $serviceAlertCount > 0 ? 'bg-danger-light text-danger' : 'bg-purple-light text-purple' }} text-[16px] md:text-[18px] shrink-0">
             <i class="fas fa-bell w-4 h-4 md:w-5 md:h-5 flex items-center justify-center"></i>
         </div>
         <div class="flex flex-col gap-0.5 min-w-0">
-            <h3 class="text-[16px] md:text-[22px] font-bold m-0 order-last truncate">{{ $serviceAlertCount }}</h3>
-            <p class="text-[10px] md:text-[12px] text-text-secondary font-medium m-0 order-first truncate">Notifikasi Service</p>
+            <h3 class="text-[18px] md:text-[24px] font-bold m-0 order-last truncate">{{ $serviceAlertCount }}</h3>
+            <p class="text-[12px] md:text-[14px] text-text-secondary font-semibold m-0 order-first truncate">Notifikasi Service</p>
         </div>
     </div>
 </div>
@@ -249,7 +249,7 @@
                     if (vehicle) {
                         vehicleInfo = `
                             <div style="background: var(--accent-light, #eff6ff); border-radius: 2px; padding: 6px 8px; margin-bottom: 8px;">
-                                <div style="font-weight: 600; font-size: 11px; color: var(--accent, #3b82f6); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">
+                                <div style="font-weight: 600; font-size: 11px; color: var(--accent, #3b82f6); letter-spacing: 0.5px; margin-bottom: 2px;">
                                     <i class="fas ${vehicle.type === 'motor' ? 'fa-motorcycle' : 'fa-car'}" style="margin-right:4px;"></i>
                                     ${vehicle.type === 'motor' ? 'Motor' : 'Mobil'}
                                 </div>

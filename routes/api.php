@@ -9,7 +9,7 @@ Route::get('/gps', function (Request $request) {
 
     $lat = $request->lat;
     $lng = $request->lng;
-    $deviceId = $request->device_id ?? 'IOT-DEV-01';
+    $deviceId = $request->device_id ?? 'DEVICE-01';
 
     if (!$lat || !$lng) {
         return response()->json(['status' => 'error', 'message' => 'Missing coordinates'], 400);
