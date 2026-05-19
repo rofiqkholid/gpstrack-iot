@@ -89,7 +89,7 @@
             @csrf
             <button type="submit" class="flex items-center gap-2.5 py-2.5 px-3 rounded-lg no-underline text-text-secondary transition-all duration-150 mb-0.5 font-medium text-[14px] hover:bg-bg-tertiary hover:text-text-primary w-full text-left bg-transparent border-none cursor-pointer">
                 <span class="w-5 h-5 flex items-center justify-center shrink-0 text-[15px]"><i class="fas fa-sign-out-alt text-danger"></i></span>
-                <span class="text-[14px] flex-1">Keluar / Logout</span>
+                <span class="text-[14px] flex-1">Logout</span>
             </button>
         </form>
     </nav>

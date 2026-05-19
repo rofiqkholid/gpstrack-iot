@@ -86,7 +86,7 @@
                 
                 <!-- Username Input -->
                 <div class="space-y-2">
-                    <label for="username" class="text-xs font-semibold uppercase tracking-wider text-text-secondary">Username</label>
+                    <label for="username" class="text-xs font-semibold text-text-secondary">Username</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-text-secondary text-[15px]">
                             <i class="fas fa-user"></i>
@@ -102,7 +102,7 @@
                 <!-- Password Input -->
                 <div class="space-y-2">
                     <div class="flex justify-between items-center">
-                        <label for="password" class="text-xs font-semibold uppercase tracking-wider text-text-secondary">Kata Sandi</label>
+                        <label for="password" class="text-xs font-semibold text-text-secondary">Password</label>
                     </div>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-text-secondary text-[15px]">
